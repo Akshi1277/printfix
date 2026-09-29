@@ -120,7 +120,7 @@ function Scene({ p, sx, sy }: { p: MotionValue<number>; sx: MotionValue<number>;
       </motion.div>
 
       {/* 5 — the box: the focal object */}
-      <motion.div style={{ x: boxX, y: boxSink, scale: boxScale }} className="absolute left-1/2 top-[27vh] z-20 w-[min(34vw,62vh)] -translate-x-1/2 [perspective:1400px]">
+      <motion.div style={{ x: boxX, y: boxSink, scale: boxScale }} className="absolute left-1/2 top-[27vh] z-20 w-[min(31vw,56vh)] -translate-x-1/2 [perspective:1400px]">
         <motion.div initial={{ opacity: 0, y: 70, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={t(0.35, 1.1)}>
           <motion.div style={{ ...boxPtr, rotateY: rotY, rotateX: rotX }} className="relative [transform-style:preserve-3d]">
             {/* contact shadow on the table */}
@@ -154,16 +154,16 @@ function Scene({ p, sx, sy }: { p: MotionValue<number>; sx: MotionValue<number>;
       </motion.div>
 
       {/* front type: "people notice." + touch. open. keep. + copy + CTAs */}
-      <motion.div style={{ y: headY, opacity: typeOut }} className="absolute bottom-[8vh] left-[4vw] z-40 max-w-[44vw]">
+      <motion.div style={{ y: headY, opacity: typeOut }} className="absolute bottom-[8vh] left-[4vw] z-40 w-[calc(46vw-min(15.5vw,28vh)-3vw)]">
         <span className="block overflow-hidden pb-[0.05em]">
           <motion.span initial={{ y: "100%" }} animate={{ y: 0 }} transition={t(0.9, 1)} className="block origin-left">
-            <motion.span style={{ scale: noticeScale }} className="display block origin-left text-[clamp(44px,6.4vw,110px)] uppercase text-ink">
+            <motion.span style={{ scale: noticeScale }} className="display block origin-left text-[clamp(38px,min(5.2vw,9vh),104px)] uppercase text-ink">
               People notice.
             </motion.span>
           </motion.span>
         </span>
         <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={t(1.05)} className="label mt-5 text-red">Touch · Open · Keep</motion.p>
-        <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={t(1.1)} className="mt-3 max-w-[400px] text-[16px] leading-relaxed text-ink-2">
+        <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={t(1.1)} className="mt-3 max-w-[420px] text-[16px] leading-relaxed text-ink-2">
           Rigid boxes, cartons, mailers, bags and books — offset printed, foiled, embossed and finished for your brand, at low MOQ.
         </motion.p>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={t(1.3)} className="mt-6 flex flex-wrap gap-3">
