@@ -154,7 +154,7 @@ function Scene({ p, sx, sy }: { p: MotionValue<number>; sx: MotionValue<number>;
       </motion.div>
 
       {/* front type: "people notice." + touch. open. keep. + copy + CTAs */}
-      <motion.div style={{ y: headY, opacity: typeOut }} className="absolute bottom-[8vh] left-[4vw] z-40 w-[calc(46vw-min(15.5vw,28vh)-3vw)]">
+      <motion.div style={{ y: headY, opacity: typeOut }} className="absolute bottom-[8vh] left-[4vw] z-40 w-[calc(47.5vw-min(15.5vw,28vh)-2vw)]">
         <span className="block overflow-hidden pb-[0.05em]">
           <motion.span initial={{ y: "100%" }} animate={{ y: 0 }} transition={t(0.9, 1)} className="block origin-left">
             <motion.span style={{ scale: noticeScale }} className="display block origin-left text-[clamp(38px,min(5.2vw,9vh),104px)] uppercase text-ink">
@@ -166,7 +166,7 @@ function Scene({ p, sx, sy }: { p: MotionValue<number>; sx: MotionValue<number>;
         <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={t(1.1)} className="mt-3 max-w-[420px] text-[16px] leading-relaxed text-ink-2">
           Rigid boxes, cartons, mailers, bags and books — offset printed, foiled, embossed and finished for your brand, at low MOQ.
         </motion.p>
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={t(1.3)} className="mt-6 flex flex-wrap gap-3">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={t(1.3)} className="mt-6 flex flex-wrap gap-2 xl:gap-3">
           <HeroCta href={quoteHref} primary>Get a quote</HeroCta>
           <HeroCta href="/work/">View our work</HeroCta>
         </motion.div>
@@ -203,7 +203,7 @@ function HeroCta({ href, primary = false, children }: { href: string; primary?: 
     <motion.div whileHover={{ scale: 1.03 }} transition={{ duration: 0.25, ease: EASE }}>
       <Link
         href={href}
-        className={`group inline-flex min-h-12 items-center gap-3 px-6 text-[13px] font-semibold uppercase tracking-[0.12em] transition-colors duration-300 ${
+        className={`group inline-flex min-h-12 items-center gap-3 whitespace-nowrap px-4 text-[12px] font-semibold uppercase tracking-[0.11em] transition-colors duration-300 xl:px-6 xl:text-[13px] ${
           primary ? "bg-red text-white hover:bg-red-deep" : "border border-ink/25 bg-paper/70 text-ink hover:border-ink hover:bg-ink hover:text-white"
         }`}
       >
