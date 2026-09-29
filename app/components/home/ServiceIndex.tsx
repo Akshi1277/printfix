@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { offset, services } from "../../content";
 import { forService, offsetProjects } from "../../portfolio";
-import { EASE, Label, Reveal } from "../ui";
+import { EASE, Label, Preload, Reveal } from "../ui";
 
 // The five product categories plus offset printing — Printfix's actual structure.
 const items = [
@@ -25,6 +25,7 @@ export default function ServiceIndex() {
 
   return (
     <section id="products" className="section" aria-labelledby="products-title">
+      <Preload srcs={items.map((x) => x.image.src)} />
       <div className="wrap">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <Reveal>

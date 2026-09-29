@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent, useTransform } from "framer-motion";
 import { process } from "../../content";
-import { EASE, Label } from "../ui";
+import { EASE, Label, Preload } from "../ui";
 import { useChoreo, useSectionProgress } from "../useChoreo";
 
 // a quiet background shift per step: paper → stone and back
@@ -62,6 +62,7 @@ function ProcessStickyImpl({ choreo }: { choreo: boolean }) {
       aria-labelledby="process-title"
     >
       <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+        <Preload srcs={process.map((x) => x.image.src)} />
         <div className="wrap grid grid-cols-12 items-center gap-8">
           <div className="col-span-6">
             <Label>How we work</Label>

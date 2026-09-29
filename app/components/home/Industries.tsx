@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useMotionValueEvent } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { industries } from "../../content";
-import { EASE, Label, Reveal } from "../ui";
+import { EASE, Label, Preload, Reveal } from "../ui";
 import { useChoreo, useSectionProgress } from "../useChoreo";
 
 /**
@@ -66,6 +66,7 @@ function IndustriesImpl({ choreo }: { choreo: boolean }) {
   return (
     <section id="industries" ref={ref} className="relative h-[170vh]" aria-labelledby="industries-title">
       <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
+        <Preload srcs={industries.map((x) => x.image.src)} />
         <div className="wrap">
           {head}
           <div className="mt-10 grid grid-cols-12 gap-8">

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { finishes } from "../../content";
-import { EASE, Label, Reveal } from "../ui";
+import { EASE, Label, Preload, Reveal } from "../ui";
 import { useFinePointer } from "../useChoreo";
 
 /**
@@ -46,6 +46,7 @@ export default function Finishes() {
 
   return (
     <section className="section bg-charcoal text-white" aria-labelledby="finish-title">
+      <Preload srcs={finishes.map((x) => x.image.src)} />
       <div className="wrap">
         <Reveal className="grid gap-6 lg:grid-cols-12">
           <div className="lg:col-span-7">

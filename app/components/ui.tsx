@@ -106,3 +106,18 @@ export function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) 
     </svg>
   );
 }
+
+/**
+ * Warms the cache for images a switcher will show later (industries, finishes, process, products),
+ * so swapping never flashes an empty frame. 1px, invisible, lazy: they load as the section nears
+ * the viewport, not with the first paint.
+ */
+export function Preload({ srcs }: { srcs: string[] }) {
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute h-px w-px overflow-hidden opacity-0">
+      {srcs.map((s) => (
+        <img key={s} src={s} alt="" width={1} height={1} loading="lazy" />
+      ))}
+    </div>
+  );
+}
