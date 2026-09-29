@@ -72,8 +72,8 @@ export const intro = {
     "Printfix designs, prints and finishes packaging and printed pieces for brands that care how their product is received — from the structure and the board to the last foil line.",
     "Design, sampling, printing, finishing and packing run as one sequence, planned around your deadline.",
   ],
-  detail: { src: "/work/nzuri-2.webp", alt: "Deep green Nzuri mailer box with gold foil line portrait" },
-  detailCaption: "Gold foil · Nzuri",
+  detail: { src: "/work/af-abaya-2.webp", alt: "Burgundy A&F Abaya rigid box, lid open to show a cream interior" },
+  detailCaption: "A&F Abaya · book-style rigid box",
 };
 
 
