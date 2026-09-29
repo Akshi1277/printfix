@@ -24,6 +24,8 @@ const P = (
 
 export const projects: Project[] = [
   // ── Rigid boxes
+  P("aethara", "Aethara", "rigid-box", "Book-style rigid box · Gifting", "Navy rigid box with an art-nouveau gold foil illustration", 3,
+    [["Type", "Rigid box (setup box)"], ["Style", "Hinged lid, book-style opening"], ["Closure", "Hidden magnetic flap"], ["Finish", "Printed, gold foil stamped logo"], ["Use", "Perfume, gifting, apparel, cosmetics"]]),
   P("glide-red", "Glide V2 — Red", "rigid-box", "Side-open rigid box · Gaming", "Red rigid box for Glide V2 finger sleeves on red satin", 3,
     [["Type", "Rigid box"], ["Closure", "Side open"], ["Product", "Finger sleeves"], ["Industry", "Gaming"], ["Colour", "Red"]], "Vero Forza"),
   P("birra-attar", "Birra Attar", "rigid-box", "Magnetic rigid box · Perfumery", "Two-tone rigid attar boxes for Birra on burgundy satin", 3,
@@ -35,8 +37,6 @@ export const projects: Project[] = [
   P("vero-forza-magnetic", "Vero Forza × Doodle", "rigid-box", "Magnetic rigid box · Gaming", "Black magnetic rigid box with tone-on-tone doodle print and gold emblems", 3,
     [["Type", "Rigid box"], ["Closure", "Magnetic"], ["Product", "Finger sleeves"], ["Industry", "Gaming"], ["Colour", "Black"]], "Vero Forza"),
   P("olivia-leigh", "Olivia Leigh", "rigid-box", "Book-style rigid box · Gifting", "Burgundy book-style rigid boxes with gold foil Olivia Leigh logo", 3,
-    [["Type", "Rigid box (setup box)"], ["Style", "Hinged lid, book-style opening"], ["Closure", "Hidden magnetic flap"], ["Finish", "Printed, gold foil stamped logo"], ["Use", "Perfume, gifting, apparel, cosmetics"]]),
-  P("aethara", "Aethara", "rigid-box", "Book-style rigid box · Gifting", "Navy rigid box with an art-nouveau gold foil illustration", 3,
     [["Type", "Rigid box (setup box)"], ["Style", "Hinged lid, book-style opening"], ["Closure", "Hidden magnetic flap"], ["Finish", "Printed, gold foil stamped logo"], ["Use", "Perfume, gifting, apparel, cosmetics"]]),
   P("af-abaya", "A&F Abaya", "rigid-box", "Book-style rigid box · Fashion", "Burgundy A&F Abaya rigid box with a printed rose border", 4,
     [["Type", "Rigid box (setup box)"], ["Style", "Hinged lid, book-style opening"], ["Closure", "Hidden magnetic flap"], ["Finish", "Printed, gold foil stamped logo"], ["Use", "Abaya & clothing brand"]]),
@@ -142,5 +142,8 @@ export const isOffset = (p: Project) => p.specs.some((s) => /offset/i.test(s.val
 export const offsetProjects = () => projects.filter(isOffset);
 
 /** Homepage selection: varied categories, strongest photography. */
-export const selectedWork = ["af-abaya", "nuda", "nzuri", "deeniyat-amma", "luv-cbd", "birra-attar", "quynh-nga"];
-export const featured = "glide-red";
+export const selectedWork = ["af-abaya", "nuda", "nzuri", "deeniyat-amma", "birra-attar", "luv-cbd"];
+export const featured = "ruixuecui";
+
+/** Richer case-study layout for the strongest, most fully specified projects. */
+export const caseStudies = ["glide-red", "aethara", "ruixuecui", "nzuri", "paloma", "deeniyat-amma"];

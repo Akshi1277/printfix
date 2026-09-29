@@ -64,7 +64,7 @@ export default function Nav() {
               onClick={() => setSvcOpen((v) => !v)}
               className="flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium text-ink transition-colors hover:text-red"
             >
-              Services
+              Products
               <ChevronDown aria-hidden="true" className={`h-3.5 w-3.5 transition-transform duration-300 ${svcOpen ? "rotate-180" : ""}`} />
             </button>
             <AnimatePresence>
@@ -141,7 +141,7 @@ export default function Nav() {
             className="fixed inset-0 top-0 flex flex-col overflow-y-auto bg-paper pt-20 lg:hidden"
           >
             <nav aria-label="Mobile" className="wrap flex flex-1 flex-col">
-              <p className="label mb-3 mt-6 text-muted">Services</p>
+              <p className="label mb-3 mt-6 text-muted">Products</p>
               <ul className="border-t border-line">
                 {services.map((s) => (
                   <li key={s.slug} className="border-b border-line">

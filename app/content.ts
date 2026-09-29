@@ -32,7 +32,7 @@ export const whatsappLink = (text = "Hello Printfix, I'd like a quote for a prin
   `https://wa.me/${company.whatsapp}?text=${encodeURIComponent(text)}`;
 
 export const nav = [
-  { label: "Services", href: "/#services" },
+  { label: "Products", href: "/#products" },
   { label: "Offset Printing", href: "/offset-printing/" },
   { label: "Work", href: "/work/" },
   { label: "Industries", href: "/#industries" },
@@ -43,9 +43,16 @@ export const nav = [
 export const quoteHref = "/contact/#quote";
 
 export const hero = {
-  label: "Offset printing & custom packaging",
-  title: ["Where precision", "meets prestige."],
-  body: "We deliver customised printing and packaging to businesses at low MOQ — from offset-printed cartons and paper bags to luxury rigid boxes and books.",
+  label: "Offset printing & custom packaging · Low MOQ",
+  // The central idea: packaging and print are physical things people notice, touch, open and keep.
+  title: ["Packaging people", "notice, touch,", "open and keep."],
+  body: "Custom rigid boxes, cartons, mailers, paper bags and books — offset printed, foiled, embossed and finished for your brand, at low MOQ.",
+  // three real pieces across three categories — the hero shows range, not one hero shot
+  pieces: [
+    { slug: "velina", n: 1, label: "Velina · Rigid box" },
+    { slug: "aethara", n: 1, label: "Aethara · Book-style box" },
+    { slug: "nuda", n: 1, label: "nuda. · Paper bag" },
+  ],
   image: { src: "/work/velina-1.webp", alt: "Green rigid perfume box with gold foil floral pattern, open to show a glass attar bottle in a fitted cream insert" },
   inset: { src: "/work/glide-red-3.webp", alt: "Red rigid box opened to show a black die-cut foam insert" },
 };
@@ -59,13 +66,16 @@ export const trust = [
 ];
 
 export const intro = {
-  label: "Who we are",
-  title: "Your reliable printing & packaging partner.",
+  label: "Printfix · Design · Print · Promote",
+  title: "The first thing your customer holds is the box.",
   body: [
-    "We specialise in custom printing, packaging boxes, branding materials and commercial print designed to enhance brand visibility. From concept to final production, our focus remains on quality, precision and timely delivery.",
-    "With industry experience and modern printing technology, we help businesses create impactful packaging, marketing materials and branded assets that strengthen their market presence.",
+    "Printfix designs, prints and finishes packaging and printed pieces for brands that care how their product is received — from the structure and the board to the last foil line.",
+    "Design, sampling, printing, finishing and packing run as one sequence, planned around your deadline.",
   ],
+  detail: { src: "/work/nzuri-2.webp", alt: "Deep green Nzuri mailer box with gold foil line portrait" },
+  detailCaption: "Gold foil · Nzuri",
 };
+
 
 /**
  * Offset printing. Printfix's own project specs name "high-quality offset printing" on cartons,
@@ -116,7 +126,7 @@ export const services: Service[] = [
     title: "Rigid Box",
     statement: "Not just a box — a statement of luxury.",
     body: "Premium rigid boxes designed for luxury packaging and high-end products. Ideal for gifting, retail and brand presentation with superior finishing options.",
-    image: { src: "/work/aethara-1.webp", alt: "Navy rigid box with an art-nouveau gold foil illustration and the Aethara wordmark" },
+    image: { src: "/work/olivia-leigh-1.webp", alt: "Two burgundy Olivia Leigh book-style rigid boxes with gold foil logos" },
     seoTitle: "Custom Rigid Boxes — Magnetic & Luxury Packaging",
   },
   {
@@ -165,52 +175,40 @@ export const industries = [
   { n: "05", title: "Pharmaceutical", note: "Printed medicine and supplement cartons.", image: { src: "/work/colact-1.webp", alt: "Offset-printed white and purple medicine carton" } },
 ];
 
-export type Finish = { key: string; title: string; body: string; image: { src: string; alt: string } };
+export type Finish = { key: string; short: string; title: string; body: string; image: { src: string; alt: string } };
 
 /** Finishes that appear in Printfix's own project specifications. */
 export const finishes: Finish[] = [
-  { key: "foil", title: "Foil stamping", body: "Gold and light-gold foil on logos, borders and illustration.", image: { src: "/work/velina-4.webp", alt: "Macro of gold foil floral line work on a green rigid box edge" } },
-  { key: "emboss", title: "Blind embossing", body: "Raised lettering with no ink — texture you read with your fingers.", image: { src: "/work/ruixuecui-2.webp", alt: "Cream rigid box with large blind-embossed lettering catching the light" } },
-  { key: "deboss", title: "Debossing", body: "Pressed-in artwork on covers and boards.", image: { src: "/work/deeniyat-daily-2.webp", alt: "Blind debossed mosque and minaret design on a brown book cover" } },
-  { key: "spot-uv", title: "Spot UV", body: "A selective gloss layer that lifts a logo or pattern off a matte surface.", image: { src: "/work/paloma-2.webp", alt: "Navy paper bag with a tonal bird pattern, spot UV details and gold foil lettering" } },
-  { key: "lamination", title: "Soft-touch & matte lamination", body: "Velvety, low-sheen surfaces for rigid boxes, bags and covers.", image: { src: "/work/b-boutique-2.webp", alt: "Ivory soft-touch laminated paper bag with a black ribbon handle" } },
-  { key: "white-ink", title: "Offset & white-ink printing", body: "High-quality offset printing, including white ink on coloured and kraft stocks.", image: { src: "/work/le-rose-1.webp", alt: "Blue corrugated mailer printed with white-ink leaves" } },
+  { key: "foil", short: "Foil", title: "Foil stamping", body: "Gold and light-gold foil on logos, borders and illustration.", image: { src: "/finishes/foil.webp", alt: "Gold hot-foil botanical line art on a green textured rigid box" } },
+  { key: "emboss", short: "Emboss", title: "Blind embossing", body: "A raised pattern or lettering with no ink — texture you read with your fingers.", image: { src: "/finishes/emboss.webp", alt: "Blind-embossed art-deco pattern raised on cream board, catching raking light" } },
+  { key: "deboss", short: "Deboss", title: "Debossing", body: "Pressed-in artwork on covers and boards.", image: { src: "/finishes/deboss.webp", alt: "A circular emblem debossed into tan kraft book board" } },
+  { key: "spot-uv", short: "Spot UV", title: "Spot UV", body: "A selective gloss layer that lifts a logo or pattern off a matte surface.", image: { src: "/finishes/spot-uv.webp", alt: "Glossy spot UV leaf on a matte black soft-touch box" } },
+  { key: "lamination", short: "Lamination", title: "Soft-touch & matte lamination", body: "Velvety, low-sheen surfaces for rigid boxes, bags and covers.", image: { src: "/finishes/lamination.webp", alt: "Ivory soft-touch laminated paper bag with a black satin ribbon handle" } },
+  { key: "white-ink", short: "Print", title: "Offset & white-ink printing", body: "High-quality offset printing, including white ink on coloured and kraft stocks.", image: { src: "/finishes/print.webp", alt: "Freshly offset-printed sheets with CMYK colour bars and registration marks" } },
 ];
 
-/** Printfix's own five-step process, from the About page. */
+/** Printfix's own five-step process, from the About page. Images show the stage's physical result. */
 export const process = [
-  { n: "01", title: "Understand", body: "Understanding client requirements and product details." },
-  { n: "02", title: "Design & sample", body: "Designing and sampling for client approval." },
-  { n: "03", title: "Material & print", body: "Material selection and printing process." },
-  { n: "04", title: "Finish & pack", body: "Finishing and packaging." },
-  { n: "05", title: "Check & deliver", body: "Final quality check and on-time delivery." },
+  { n: "01", title: "Understand", body: "We start with your requirements and your product — what it is, its size and how it will be used.", image: { src: "/work/kraft-two-piece-1.webp", alt: "Plain kraft two-piece box, lid lifted — a structure before its finish" } },
+  { n: "02", title: "Design & sample", body: "Structure and artwork are designed, then sampled for your approval before anything is produced.", image: { src: "/work/le-rose-1.webp", alt: "White-ink leaf artwork on a blue corrugated mailer" } },
+  { n: "03", title: "Material & print", body: "The board and paper are chosen, and the approved artwork is printed — offset for sharp, consistent colour.", image: { src: "/work/sufr-glow-2.webp", alt: "Offset-printed orange skincare carton with fine text and gradients" } },
+  { n: "04", title: "Finish & pack", body: "Foil, embossing, spot UV and lamination go on; the pieces are cut, formed and packed.", image: { src: "/finishes/foil.webp", alt: "Gold hot-foil botanical line art on a green rigid box" } },
+  { n: "05", title: "Check & deliver", body: "A final quality check, then on-time delivery.", image: { src: "/work/gift-set-2.webp", alt: "Rows of finished kraft gift-set boxes ready to ship" } },
 ];
 
-/** From the "Why choose Printfix" section. */
+/** "Why Printfix", each point backed by something real: a client quote, a project, or the process. */
 export const why = {
   label: "Why Printfix",
-  title: "Premium work, planned properly, priced fairly.",
+  title: "Five promises, and the proof behind each.",
   points: [
-    { title: "On-time delivery", body: "Planned production ensures timely delivery without quality compromise." },
-    { title: "Premium. Fair. Value.", body: "Luxury printing and packaging at competitive prices." },
-    { title: "Print & pack, unified", body: "End-to-end design, print and packaging — fast, smooth, reliable." },
-    { title: "Customisation expertise", body: "Custom print and packaging tailored to your product, budget and brand." },
-    { title: "Experienced management", body: "A team focused on quality control, clear communication and continuous improvement." },
+    { title: "On-time delivery", body: "Production is planned around your deadline and the date is set with your quote.", proof: { kind: "quote", text: "Handling everything from small jobs to tight deadlines without any fuss.", by: "Rashid Patel, Director, Vero Forza" } },
+    { title: "Print & pack, unified", body: "Design, sampling, printing, finishing and packing run as one sequence — so the structure, the artwork and the finish are decided together, not handed between suppliers.", proof: { kind: "link", text: "See the five steps", href: "#process" } },
+    { title: "Customisation expertise", body: "Built around the product inside it. For Glide V2, the rigid box carries a die-cut insert shaped for the finger sleeves.", proof: { kind: "image", src: "/work/glide-red-3.webp", alt: "Glide V2 red rigid box open to show its die-cut foam insert" } },
+    { title: "Premium. Fair. Value.", body: "Price follows the specification — board, size, print, finishes and quantity — and low MOQ means you order what you need.", proof: { kind: "quote", text: "Very reasonable pricing for such high-quality output.", by: "Ashfaque Shaikh, Procurement Manager, Birra Fragrances LLP" } },
+    { title: "Experienced management", body: "Every custom order gets a digital proof before production, and files are checked, not just printed.", proof: { kind: "quote", text: "They even caught a design error in my final file before printing, which saved us from a huge mistake.", by: "Rushab Nandu, Director, RN Kids" } },
   ],
-};
+} as const;
 
-export const craft = {
-  label: "The detail",
-  title: "Made to be picked up.",
-  body: "Every product goes through quality checks for sharp colour, clean text, precise finishing and durable materials.",
-  image: { src: "/work/ruixuecui-3.webp", alt: "Cream rigid box with embossed lettering, lid open to show a tray of chocolates" },
-  labels: [
-    { text: "Blind emboss", x: "22%", y: "9%" },
-    { text: "Hinged lid", x: "70%", y: "12%" },
-    { text: "Wrapped board", x: "6%", y: "62%" },
-    { text: "Fitted tray", x: "64%", y: "66%" },
-  ],
-};
 
 export const testimonials = [
   { quote: "Printfix has been our go-to resource for years. They are professional, accurate, and quick, handling everything from small jobs to tight deadlines without any fuss.", name: "Rashid Patel", role: "Director", company: "Vero Forza" },

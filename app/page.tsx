@@ -2,22 +2,19 @@ import Hero from "./components/home/Hero";
 import TrustStrip from "./components/home/TrustStrip";
 import Intro from "./components/home/Intro";
 import ServiceIndex from "./components/home/ServiceIndex";
-import OffsetBand from "./components/home/OffsetBand";
-import Featured from "./components/home/Featured";
 import SelectedWork from "./components/home/SelectedWork";
+import Featured from "./components/home/Featured";
 import Finishes from "./components/home/Finishes";
 import Industries from "./components/home/Industries";
 import Why from "./components/home/Why";
-import Process from "./components/home/Process";
-import Craft from "./components/home/Craft";
+import ProcessSticky from "./components/home/ProcessSticky";
 import Testimonials from "./components/home/Testimonials";
-import Faq from "./components/Faq";
 import FinalCta from "./components/FinalCta";
 
 /*
- * The homepage answers a B2B buyer's questions in order:
- * what do you do → what can you make → can you handle my industry → do you have the craft →
- * can I trust you → how do I start.
+ * Printfix makes physical things people notice, touch, open and keep.
+ * Rhythm: calm sections, punctuated by a few interactive ones — hero scene, product switcher,
+ * work reel, finish light, industries, process story, close. The FAQ lives on /contact.
  */
 export default function Home() {
   return (
@@ -26,16 +23,13 @@ export default function Home() {
       <TrustStrip />
       <Intro />
       <ServiceIndex />
-      <OffsetBand />
-      <Featured />
       <SelectedWork />
+      <Featured />
       <Finishes />
       <Industries />
       <Why />
-      <Process />
-      <Craft />
+      <ProcessSticky />
       <Testimonials />
-      <Faq />
       <FinalCta />
     </>
   );

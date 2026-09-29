@@ -4,7 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { clients, testimonials } from "../../content";
-import { Label, Reveal } from "../ui";
+import { Reveal } from "../ui";
 
 /** Real client quotes from printfix.co.in — one at a time, no autoplay. The client logos double as the tabs. */
 export default function Testimonials() {
@@ -16,9 +16,10 @@ export default function Testimonials() {
     <section className="section bg-white" aria-labelledby="clients-title">
       <div className="wrap">
         <Reveal className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <Label>Clients</Label>
-            <h2 id="clients-title" className="display mt-6 text-[clamp(34px,4.4vw,68px)] text-ink">In their words.</h2>
+          {/* opener: a single oversized quote mark instead of the usual label */}
+          <div className="flex items-end gap-5">
+            <span aria-hidden="true" className="display text-[clamp(110px,12vw,190px)] leading-[0.6] text-red">&ldquo;</span>
+            <h2 id="clients-title" className="display text-[clamp(34px,4.4vw,68px)] text-ink">In their words.</h2>
           </div>
           <div className="flex gap-2">
             <button type="button" onClick={() => go(-1)} aria-label="Previous testimonial" className="flex h-12 w-12 items-center justify-center border border-ink/20 text-ink transition-colors hover:bg-ink hover:text-white">

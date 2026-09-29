@@ -1,60 +1,96 @@
 "use client";
 
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useRef, useState } from "react";
+import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { finishes } from "../../content";
 import { EASE, Label, Reveal } from "../ui";
+import { useFinePointer } from "../useChoreo";
 
 /**
- * Motion moment 4 — finishes.
- * Selecting a finish crossfades a macro photograph of it (small scale + a few pixels of drift).
- * It is a real tablist, so it works by keyboard (arrow keys) and by tap.
+ * Moment 5 — materials & finishes.
+ * Choose a finish: its macro photograph crossfades in (slight scale + drift).
+ * Moment 6 — light: on a mouse/trackpad, the pointer becomes a raking light over the macro —
+ * a soft highlight follows it and the photograph shifts up to ~10px against it, so foil and
+ * embossing catch the light the way they do in the hand. Off on touch and reduced motion.
  */
 export default function Finishes() {
   const [active, setActive] = useState(0);
   const f = finishes[active];
+  const fine = useFinePointer();
+  const box = useRef<HTMLDivElement>(null);
+  const mx = useMotionValue(0.5);
+  const my = useMotionValue(0.35);
+  const sx = useSpring(mx, { stiffness: 120, damping: 20 });
+  const sy = useSpring(my, { stiffness: 120, damping: 20 });
+  const shiftX = useTransform(sx, [0, 1], [10, -10]);
+  const shiftY = useTransform(sy, [0, 1], [8, -8]);
+  const light = useTransform([sx, sy], ([x, y]) =>
+    `radial-gradient(circle at ${(x as number) * 100}% ${(y as number) * 100}%, rgba(255,244,222,0.55) 0%, rgba(255,244,222,0.12) 22%, rgba(0,0,0,0) 45%)`,
+  );
+
+  const move = (e: React.PointerEvent) => {
+    if (!fine || !box.current) return;
+    const r = box.current.getBoundingClientRect();
+    mx.set((e.clientX - r.left) / r.width);
+    my.set((e.clientY - r.top) / r.height);
+  };
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key !== "ArrowDown" && e.key !== "ArrowUp" && e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const k = e.key;
+    if (!["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"].includes(k)) return;
     e.preventDefault();
-    const dir = e.key === "ArrowDown" || e.key === "ArrowRight" ? 1 : -1;
-    const next = (active + dir + finishes.length) % finishes.length;
+    const next = (active + (k === "ArrowDown" || k === "ArrowRight" ? 1 : -1) + finishes.length) % finishes.length;
     setActive(next);
     document.getElementById(`finish-tab-${next}`)?.focus();
   };
 
   return (
     <section className="section bg-charcoal text-white" aria-labelledby="finish-title">
-      <div className="wrap grid gap-12 lg:grid-cols-12 lg:gap-8">
-        <div className="lg:col-span-5">
-          <Reveal>
+      <div className="wrap">
+        <Reveal className="grid gap-6 lg:grid-cols-12">
+          <div className="lg:col-span-7">
             <Label light>Materials & finishes</Label>
-            <h2 id="finish-title" className="display mt-6 max-w-[12ch] text-[clamp(34px,4.4vw,68px)]">The detail is in the finish.</h2>
-            <p className="mt-6 max-w-[400px] text-[16px] leading-relaxed text-white/65">
-              Finishes Printfix has used across its rigid boxes, cartons, bags and books.
-            </p>
-          </Reveal>
+            <h2 id="finish-title" className="display mt-6 text-[clamp(38px,5.4vw,88px)]">The detail is in the finish.</h2>
+          </div>
+          <p className="max-w-[380px] text-[16px] leading-relaxed text-white/65 lg:col-span-4 lg:col-start-9 lg:self-end">
+            The finishes Printfix offers across boxes, cartons, bags and books. {fine ? "Move across the photograph to catch the light." : ""}
+          </p>
+        </Reveal>
 
-          {/* mobile: the selected finish sits right above the list, so a tap shows its photo in view */}
-          <div className="relative mt-10 aspect-[4/3] overflow-hidden bg-white/5 lg:hidden">
-            <AnimatePresence initial={false}>
-              <motion.img
-                key={f.key}
-                src={f.image.src.replace(".webp", "-sm.webp")}
-                alt={f.image.alt}
-                width={640}
-                height={600}
-                loading="lazy"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            </AnimatePresence>
+        <div className="mt-14 grid gap-10 lg:grid-cols-12 lg:gap-8">
+          <div id="finish-panel" role="tabpanel" aria-labelledby={`finish-tab-${active}`} className="lg:col-span-8">
+            <div
+              ref={box}
+              onPointerMove={move}
+              onPointerLeave={() => { mx.set(0.5); my.set(0.35); }}
+              className="relative aspect-[4/3] overflow-hidden bg-white/5"
+            >
+              <AnimatePresence initial={false}>
+                <motion.div
+                  key={f.key}
+                  initial={{ opacity: 0, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.7, ease: EASE }}
+                  className="absolute -inset-3"
+                >
+                  <motion.img
+                    src={f.image.src}
+                    alt={f.image.alt}
+                    width={2016}
+                    height={1892}
+                    loading="lazy"
+                    style={fine ? { x: shiftX, y: shiftY } : undefined}
+                    className="h-full w-full object-cover"
+                  />
+                </motion.div>
+              </AnimatePresence>
+              {fine && <motion.div aria-hidden="true" style={{ backgroundImage: light }} className="pointer-events-none absolute inset-0 mix-blend-soft-light" />}
+              <p className="absolute bottom-0 left-0 bg-charcoal px-4 py-3 text-[14px] text-white/85">{f.body}</p>
+            </div>
           </div>
 
-          <div role="tablist" aria-orientation="vertical" aria-label="Finishes" onKeyDown={onKey} className="mt-10 border-t border-white/15">
+          <div role="tablist" aria-orientation="vertical" aria-label="Finishes" onKeyDown={onKey} className="border-t border-white/15 lg:col-span-4">
             {finishes.map((x, i) => {
               const on = i === active;
               return (
@@ -65,46 +101,19 @@ export default function Finishes() {
                   type="button"
                   aria-selected={on}
                   aria-controls="finish-panel"
+                  aria-label={x.title}
                   tabIndex={on ? 0 : -1}
                   onClick={() => setActive(i)}
                   onMouseEnter={() => setActive(i)}
-                  className="group flex w-full items-baseline gap-5 border-b border-white/15 py-4 text-left"
+                  className="group flex w-full items-baseline gap-5 border-b border-white/15 py-4 text-left md:py-5"
                 >
                   <span className={`num w-6 text-[12px] transition-colors ${on ? "text-red" : "text-white/35"}`}>{String(i + 1).padStart(2, "0")}</span>
-                  <span className="flex-1">
-                    <span className={`block text-[19px] font-semibold transition-[color,transform] duration-500 [font-stretch:108%] md:text-[21px] ${on ? "translate-x-2 text-white" : "text-white/55 group-hover:text-white/80"}`}>
-                      {x.title}
-                    </span>
-                    <span className={`grid transition-[grid-template-rows,opacity] duration-500 ${on ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
-                      <span className="overflow-hidden">
-                        <span className="block max-w-[380px] translate-x-2 pt-2 text-[14px] leading-relaxed text-white/60">{x.body}</span>
-                      </span>
-                    </span>
+                  <span className={`display uppercase text-[clamp(26px,2.6vw,40px)] transition-[color,transform] duration-500 ${on ? "translate-x-2 text-white" : "text-white/35 group-hover:text-white/70"}`}>
+                    {x.short}
                   </span>
                 </button>
               );
             })}
-          </div>
-        </div>
-
-        <div id="finish-panel" role="tabpanel" aria-labelledby={`finish-tab-${active}`} className="hidden lg:col-span-7 lg:block">
-          <div className="relative aspect-[1008/946] overflow-hidden bg-white/5 lg:sticky lg:top-28">
-            <AnimatePresence initial={false}>
-              <motion.img
-                key={f.key}
-                src={f.image.src}
-                alt={f.image.alt}
-                width={1008}
-                height={946}
-                loading="lazy"
-                initial={{ opacity: 0, scale: 1.04, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.7, ease: EASE }}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-            </AnimatePresence>
-            <p className="label absolute bottom-0 right-0 bg-charcoal px-4 py-3 text-white/80">{f.title}</p>
           </div>
         </div>
       </div>

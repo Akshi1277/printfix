@@ -99,7 +99,7 @@ export default function OffsetPage() {
           </ul>
         </div>
         <div className="wrap mt-10">
-          <Link href="/#services" className="text-[14px] text-muted underline underline-offset-4 hover:text-red">Explore all services →</Link>
+          <Link href="/#products" className="text-[14px] text-muted underline underline-offset-4 hover:text-red">Explore all services →</Link>
         </div>
       </section>
 

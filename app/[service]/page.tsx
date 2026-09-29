@@ -41,7 +41,7 @@ export default async function ServicePage({ params }: { params: Promise<{ servic
 
   return (
     <>
-      <PageHead crumbs={[{ label: "Home", href: "/" }, { label: "Services", href: "/#services" }, { label: s.title }]} label={`Service ${s.n}`} title={s.title} lede={s.body}>
+      <PageHead crumbs={[{ label: "Home", href: "/" }, { label: "Products", href: "/#products" }, { label: s.title }]} label={`Service ${s.n}`} title={s.title} lede={s.body}>
         <div className="mt-8">
           <Button href={quoteHref}>Get a quote</Button>
         </div>

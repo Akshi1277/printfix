@@ -5,6 +5,7 @@ import { company, services } from "./content";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import MobileBar from "./components/MobileBar";
+import FloatingCta from "./components/FloatingCta";
 import Providers from "./components/Providers";
 
 const archivo = Archivo({
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: company.legalName,
-    title: "Printfix — Where precision meets prestige",
+    title: "Printfix — Packaging people notice, touch, open and keep",
     description: company.seoDescription,
     url: company.url,
     images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Printfix packaging — a green rigid perfume box with gold foil" }],
@@ -82,6 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main id="main">{children}</main>
           <Footer />
           <MobileBar />
+          <FloatingCta />
         </Providers>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </body>
