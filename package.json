@@ -9,8 +9,8 @@
     "postbuild": "node scripts/flatten-prefetch.mjs"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "framer-motion": "^13.4.2",
-    "lucide-react": "latest",
     "next": "^16.3.6",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"

@@ -8,9 +8,9 @@ import FinalCta from "../components/FinalCta";
 import { Button, Label, Reveal } from "../components/ui";
 
 export const metadata: Metadata = {
-  title: "Offset Printing — Cartons, Boxes & Paper Bags",
+  title: "Offset Printing: Cartons, Boxes & Paper Bags",
   description:
-    "High-quality offset printing by Printfix for product cartons, corrugated mailers and paper bags — CMYK and Pantone colour, finished with lamination, spot UV and foil. Low MOQ, across India.",
+    "High-quality offset printing by Printfix for product cartons, corrugated mailers and paper bags, in CMYK and Pantone colour, finished with lamination, spot UV and foil. Low MOQ, across India.",
   alternates: { canonical: "/offset-printing/" },
   openGraph: { images: [{ url: offset.image.src, width: 1008, height: 946, alt: offset.image.alt }] },
 };
@@ -74,7 +74,7 @@ export default function OffsetPage() {
             <h2 id="offset-work" className="display mt-6 text-[clamp(30px,3.6vw,56px)] text-ink">{work.length} projects printed offset.</h2>
           </div>
           <p className="max-w-[380px] text-[15px] text-muted">
-            Across {usedIn.map((s) => s.title.toLowerCase()).join(", ").replace(/, ([^,]*)$/, " and $1")} — each spec names the print and finish.
+            Across {usedIn.map((s) => s.title.toLowerCase()).join(", ").replace(/, ([^,]*)$/, " and $1")}. Each spec names the print and finish.
           </p>
         </div>
         <ul className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">

@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { CaretDown, List, X } from "@phosphor-icons/react/dist/ssr";
 import { company, nav, quoteHref, services, whatsappLink } from "../content";
 import { Button, EASE, WhatsAppIcon } from "./ui";
 
@@ -14,12 +14,9 @@ export default function Nav() {
   const [svcOpen, setSvcOpen] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 24);
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
-  }, []);
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 24));
+  useEffect(() => setScrolled(window.scrollY > 24), []);
 
   // close menus on navigation
   useEffect(() => {
@@ -44,7 +41,7 @@ export default function Nav() {
       }`}
     >
       <div className={`wrap flex items-center justify-between gap-6 transition-[height] duration-300 ${scrolled ? "h-16" : "h-20 md:h-24"}`}>
-        <Link href="/" aria-label={`${company.name} — home`} className="relative z-10 shrink-0">
+        <Link href="/" aria-label={`${company.name} home`} className="relative z-10 shrink-0">
           <img
             src={company.logo.color}
             alt={company.name}
@@ -65,7 +62,7 @@ export default function Nav() {
               className="flex items-center gap-1.5 px-3 py-2 text-[14px] font-medium text-ink transition-colors hover:text-red"
             >
               Products
-              <ChevronDown aria-hidden="true" className={`h-3.5 w-3.5 transition-transform duration-300 ${svcOpen ? "rotate-180" : ""}`} />
+              <CaretDown aria-hidden="true" className={`h-3.5 w-3.5 transition-transform duration-300 ${svcOpen ? "rotate-180" : ""}`} />
             </button>
             <AnimatePresence>
               {svcOpen && (
@@ -126,7 +123,7 @@ export default function Nav() {
           aria-label={open ? "Close menu" : "Open menu"}
           className="relative z-10 -mr-2 flex h-11 w-11 items-center justify-center text-ink lg:hidden"
         >
-          {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {open ? <X className="h-6 w-6" /> : <List className="h-6 w-6" />}
         </button>
       </div>
 

@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { offset, services } from "../../content";
 import { forService, offsetProjects } from "../../portfolio";
-import { EASE, Label, Preload, Reveal } from "../ui";
+import { EASE, Preload, Reveal } from "../ui";
 
 // The five product categories plus offset printing — Printfix's actual structure.
 const items = [
@@ -27,15 +27,10 @@ export default function ServiceIndex() {
     <section id="products" className="section" aria-labelledby="products-title">
       <Preload srcs={items.map((x) => x.image.src)} />
       <div className="wrap">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <Reveal>
-            <Label>What we make</Label>
-            <h2 id="products-title" className="display mt-6 max-w-[14ch] text-[clamp(34px,4.6vw,72px)] text-ink">Five products. One print process.</h2>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="max-w-[360px] text-[16px] leading-relaxed text-muted">Each made to your size, stock, finish and quantity — and offset printed where colour matters.</p>
-          </Reveal>
-        </div>
+        <Reveal>
+          <h2 id="products-title" className="display max-w-[14ch] text-[clamp(34px,4.6vw,72px)] text-ink">Five products. One print process.</h2>
+          <p className="mt-6 max-w-[420px] text-[17px] leading-relaxed text-ink-2">Each made to your size, stock, finish and quantity, and offset printed where colour matters.</p>
+        </Reveal>
 
         <div className="mt-14 grid gap-10 lg:mt-20 lg:grid-cols-12 lg:gap-12">
           <ol className="border-t border-line lg:col-span-6">

@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { motion, useMotionValue, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { quoteHref } from "../content";
 import { useFinePointer } from "./useChoreo";
 
@@ -21,16 +21,15 @@ export default function FloatingCta() {
   const x = useSpring(useMotionValue(0), { stiffness: 200, damping: 15 });
   const y = useSpring(useMotionValue(0), { stiffness: 200, damping: 15 });
 
-  useEffect(() => {
-    const on = () => {
-      const f = document.querySelector("footer");
-      const nearFooter = f ? f.getBoundingClientRect().top < window.innerHeight - 40 : false;
-      setShow(window.scrollY > window.innerHeight * 0.9 && !nearFooter);
-    };
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
-  }, [pathname]);
+  const on = () => {
+    const f = document.querySelector("footer");
+    const nearFooter = f ? f.getBoundingClientRect().top < window.innerHeight - 40 : false;
+    setShow(window.scrollY > window.innerHeight * 0.9 && !nearFooter);
+  };
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", on);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(on, [pathname]);
 
   if (pathname.startsWith("/contact")) return null;
 

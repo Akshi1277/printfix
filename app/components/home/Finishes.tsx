@@ -3,13 +3,13 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { finishes } from "../../content";
-import { EASE, Label, Preload, Reveal } from "../ui";
+import { EASE, Preload, Reveal } from "../ui";
 import { useFinePointer } from "../useChoreo";
 
 /**
- * Moment 5 — materials & finishes.
+ * Moment 5: materials & finishes. The one dark band mid-page, because the raking light needs it.
  * Choose a finish: its macro photograph crossfades in (slight scale + drift).
- * Moment 6 — light: on a mouse/trackpad, the pointer becomes a raking light over the macro —
+ * Moment 6, light: on a mouse/trackpad, the pointer becomes a raking light over the macro;
  * a soft highlight follows it and the photograph shifts up to ~10px against it, so foil and
  * embossing catch the light the way they do in the hand. Off on touch and reduced motion.
  */
@@ -48,12 +48,9 @@ export default function Finishes() {
     <section className="section bg-charcoal text-white" aria-labelledby="finish-title">
       <Preload srcs={finishes.map((x) => x.image.src)} />
       <div className="wrap">
-        <Reveal className="grid gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-7">
-            <Label light>Materials & finishes</Label>
-            <h2 id="finish-title" className="display mt-6 text-[clamp(38px,5.4vw,88px)]">The detail is in the finish.</h2>
-          </div>
-          <p className="max-w-[380px] text-[16px] leading-relaxed text-white/65 lg:col-span-4 lg:col-start-9 lg:self-end">
+        <Reveal>
+          <h2 id="finish-title" className="display text-[clamp(38px,5.4vw,88px)]">The detail is in the finish.</h2>
+          <p className="mt-6 max-w-[440px] text-[17px] leading-relaxed text-white/65">
             The finishes Printfix offers across boxes, cartons, bags and books. {fine ? "Move across the photograph to catch the light." : ""}
           </p>
         </Reveal>

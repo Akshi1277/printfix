@@ -6,7 +6,7 @@ import { Label, Reveal } from "../components/ui";
 import { company } from "../content";
 
 export const metadata: Metadata = {
-  title: "About Us — Premium Printing & Packaging",
+  title: "About Us: Premium Printing & Packaging",
   description: company.description,
   alternates: { canonical: "/about/" },
 };
@@ -22,7 +22,7 @@ const blocks = [
   {
     label: "Packaging quality",
     title: "Packaging is the first impression.",
-    body: "We focus on durable materials, precise finishing and attractive designs that protect products while improving their shelf appeal — boxes, labels and branding materials tailored to each client's requirements.",
+    body: "We focus on durable materials, precise finishing and attractive designs that protect products while improving their shelf appeal: boxes, labels and branding materials tailored to each client's requirements.",
     image: { src: "/work/af-abaya-2.webp", alt: "Burgundy A&F Abaya rigid box open to show a cream interior" },
   },
 ];
@@ -30,11 +30,11 @@ const blocks = [
 const mv = [
   {
     label: "Management",
-    body: "Printfix is managed by experienced professionals who understand the printing and packaging industry. The focus: quality control, timely delivery, customer satisfaction and long-term business relationships — with clear communication, proper planning and continuous improvement.",
+    body: "Printfix is managed by experienced professionals who understand the printing and packaging industry. The focus: quality control, timely delivery, customer satisfaction and long-term business relationships, with clear communication, proper planning and continuous improvement.",
   },
   {
     label: "Mission",
-    body: "To deliver high-quality, premium printing and packaging that elevates brand value and customer experience — precise, well finished and on time — and to build long-term partnerships by doing it consistently.",
+    body: "To deliver high-quality, premium printing and packaging that elevates brand value and customer experience, precise, well finished and on time, and to build long-term partnerships by doing it consistently.",
   },
   {
     label: "Vision",

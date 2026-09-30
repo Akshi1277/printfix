@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!p) return {};
   const svc = services.find((s) => s.slug === p.service)!;
   return {
-    title: `${p.name} — ${svc.title}`,
+    title: `${p.name} | ${svc.title}`,
     description: `${p.name}: ${p.kind.toLowerCase()} by Printfix. ${p.specs.map((s) => `${s.label}: ${s.value}`).join(". ")}.`,
     alternates: { canonical: `/work/${p.slug}/` },
     openGraph: { images: [{ url: img(p.slug, 1), width: 1008, height: 946, alt: p.alt }] },
@@ -43,7 +43,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         label={caseStudies.includes(p.slug) ? `Case study · ${p.kind}` : p.kind}
         title={p.name}
       >
-        {p.client && <p className="label text-red">Client · {p.client}</p>}
+        {p.client && <p className="label text-red">Client: {p.client}</p>}
       </PageHead>
 
       {caseStudies.includes(p.slug) ? (
@@ -57,7 +57,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                 <img
                   key={n}
                   src={img(p.slug, n)}
-                  alt={`${p.name} — view ${n}`}
+                  alt={`${p.name}, view ${n}`}
                   width={1008}
                   height={946}
                   loading="lazy"

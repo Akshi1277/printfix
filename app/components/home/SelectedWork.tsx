@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { bySlug, img, projects, type Project } from "../../portfolio";
 import { Button, Reveal } from "../ui";
 import { useChoreo } from "../useChoreo";
@@ -25,9 +25,9 @@ export default function SelectedWork() {
         <Reveal className="grid items-end gap-6 border-b border-ink pb-8 md:grid-cols-12">
           <p aria-hidden="true" className="display text-[clamp(96px,16vw,260px)] leading-[0.78] text-ink md:col-span-5">{projects.length}</p>
           <div className="md:col-span-7 md:pb-3">
-            <h2 id="work-title" className="display text-[clamp(30px,3.4vw,54px)] text-ink">Selected work — real pieces, made for real brands.</h2>
+            <h2 id="work-title" className="display text-[clamp(30px,3.4vw,54px)] text-ink">Real pieces, made for real brands.</h2>
             <div className="mt-6">
-              <Button href="/work/" variant="outline">See all {projects.length} projects</Button>
+              <Button href="/work/" variant="outline">View our work</Button>
             </div>
           </div>
         </Reveal>
@@ -38,7 +38,7 @@ export default function SelectedWork() {
           <Piece p={nzuri} n={1} className="md:col-span-6 md:col-start-7 md:mt-40" aspect="aspect-[1008/946]" />
           <figure className="self-end md:col-span-3">
             <img src="/work/pastel-gift-3-sm.webp" alt="Macro of gold foil stamping on a pastel mint gift box" width={640} height={600} loading="lazy" className="aspect-[3/4] w-full bg-stone object-cover" />
-            <figcaption className="label mt-3 text-muted">Detail · gold foil on mint</figcaption>
+            <figcaption className="label mt-3 text-muted">Detail: gold foil on mint</figcaption>
           </figure>
           <Piece p={amma} n={1} className="md:col-span-8 md:col-start-5" aspect="aspect-[16/10]" big />
           <Piece p={birra} n={1} className="md:col-span-7" aspect="aspect-[1008/946]" big />

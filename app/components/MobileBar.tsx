@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useMotionValueEvent, useScroll } from "framer-motion";
 import { quoteHref, whatsappLink } from "../content";
 import { WhatsAppIcon } from "./ui";
 import Link from "next/link";
@@ -11,16 +12,15 @@ export default function MobileBar() {
   const [show, setShow] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    const on = () => {
-      const footer = document.querySelector("footer");
-      const nearFooter = footer ? footer.getBoundingClientRect().top < window.innerHeight : false;
-      setShow(window.scrollY > window.innerHeight * 0.7 && !nearFooter);
-    };
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
-  }, [pathname]);
+  const on = () => {
+    const footer = document.querySelector("footer");
+    const nearFooter = footer ? footer.getBoundingClientRect().top < window.innerHeight : false;
+    setShow(window.scrollY > window.innerHeight * 0.7 && !nearFooter);
+  };
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", on);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(on, [pathname]);
 
   if (pathname.startsWith("/contact")) return null;
 

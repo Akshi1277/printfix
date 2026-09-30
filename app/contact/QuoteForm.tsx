@@ -70,13 +70,13 @@ export default function QuoteForm() {
   const a = (k: keyof Fields) => ({ id: k, name: k, value: f[k], onChange: set(k), "aria-invalid": !!errors[k], "aria-describedby": errors[k] ? `${k}-err` : undefined });
 
   if (ready) {
-    const subject = `Quote request — ${f.product}${f.company ? ` — ${f.company}` : ""}`;
+    const subject = `Quote request: ${f.product}${f.company ? ` - ${f.company}` : ""}`;
     return (
       <div className="border border-line bg-white p-8 md:p-10" role="status">
         <p className="label text-red">Almost done</p>
         <h3 className="display mt-4 text-[clamp(26px,2.6vw,38px)] text-ink">Send your request.</h3>
         <p className="mt-4 max-w-[520px] text-[16px] leading-relaxed text-ink-2">
-          Your details are ready as a message. Send it on WhatsApp or by email — you can attach artwork, references or dielines in the same thread.
+          Your details are ready as a message. Send it on WhatsApp or by email. You can attach artwork, references or dielines in the same thread.
         </p>
         <pre className="mt-6 max-h-60 overflow-auto whitespace-pre-wrap bg-paper p-5 font-sans text-[14px] leading-relaxed text-ink-2">{ready.text}</pre>
         <div className="mt-8 flex flex-wrap gap-3">
@@ -154,7 +154,7 @@ export default function QuoteForm() {
         <button type="submit" className="inline-flex min-h-12 items-center bg-red px-8 text-[13px] font-semibold uppercase tracking-[0.12em] text-white transition-colors hover:bg-red-deep">
           Prepare my quote request
         </button>
-        <p className="text-[13px] text-muted">* Required · Office hours {company.hoursShort}</p>
+        <p className="text-[13px] text-muted">* Required. Office hours {company.hoursShort}</p>
       </div>
     </form>
   );

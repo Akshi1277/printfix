@@ -43,7 +43,7 @@ export default function CaseStudy({ p }: { p: Project }) {
                 ))}
               </div>
               <div className={`lg:col-span-6 ${k % 2 ? "lg:order-1" : "lg:col-start-7"}`}>
-                <img src={img(p.slug, pic(k + 1))} alt={`${p.name} — ${c.title.replace("The ", "")}`} width={2016} height={1892} loading="lazy" className="aspect-[1008/946] w-full bg-stone object-cover" />
+                <img src={img(p.slug, pic(k + 1))} alt={`${p.name}, ${c.title.replace("The ", "").toLowerCase()}`} width={2016} height={1892} loading="lazy" className="aspect-[1008/946] w-full bg-stone object-cover" />
               </div>
             </Reveal>
           ))}
@@ -56,7 +56,7 @@ export default function CaseStudy({ p }: { p: Project }) {
           <h2 id="final-title" className="display mt-6 text-[clamp(30px,3.4vw,52px)] text-ink">{p.name}, finished.</h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
             {Array.from({ length: p.images }, (_, i) => i + 1).map((n) => (
-              <img key={n} src={img(p.slug, n)} alt={`${p.name} — view ${n}`} width={2016} height={1892} loading="lazy" className={`w-full bg-stone object-cover ${n === 1 && p.images % 2 === 1 ? "aspect-[16/9] sm:col-span-2" : "aspect-[1008/946]"}`} />
+              <img key={n} src={img(p.slug, n)} alt={`${p.name}, view ${n}`} width={2016} height={1892} loading="lazy" className={`w-full bg-stone object-cover ${n === 1 && p.images % 2 === 1 ? "aspect-[16/9] sm:col-span-2" : "aspect-[1008/946]"}`} />
             ))}
           </div>
         </div>

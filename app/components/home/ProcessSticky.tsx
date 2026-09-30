@@ -61,7 +61,7 @@ function ProcessStickyImpl({ choreo }: { choreo: boolean }) {
       className="relative h-[320vh]"
       aria-labelledby="process-title"
     >
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden">
+      <div className="sticky top-0 flex h-[100dvh] items-center overflow-hidden">
         <Preload srcs={process.map((x) => x.image.src)} />
         <div className="wrap grid grid-cols-12 items-center gap-8">
           <div className="col-span-6">
@@ -70,7 +70,7 @@ function ProcessStickyImpl({ choreo }: { choreo: boolean }) {
             <ol className="mt-8 flex gap-2" aria-label="Steps">
               {process.map((x, k) => (
                 <li key={x.n} aria-current={k === i ? "step" : undefined} className={`num text-[13px] transition-colors ${k === i ? "text-red" : k < i ? "text-ink" : "text-ink/25"}`}>
-                  {x.n}{k < process.length - 1 && <span className="mx-2 text-ink/20">—</span>}
+                  {x.n}{k < process.length - 1 && <span aria-hidden="true" className="mx-2 inline-block h-px w-4 bg-ink/20 align-middle" />}
                 </li>
               ))}
             </ol>

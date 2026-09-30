@@ -31,7 +31,7 @@ export default function Refund() {
           ["Late approval:", "Delays in production caused by the customer's late approval of proofs."],
         ] },
         { h: "5. Refund process", items: [
-          "If a refund is approved, it will be processed via the original payment method within 5–10 business days. Shipping costs are non-refundable unless the error was entirely on our part.",
+          "If a refund is approved, it will be processed via the original payment method within 5-10 business days. Shipping costs are non-refundable unless the error was entirely on our part.",
         ] },
       ]}
     />

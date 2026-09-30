@@ -1,15 +1,14 @@
 import Link from "next/link";
 import { why } from "../../content";
-import { Label, Reveal } from "../ui";
+import { Reveal } from "../ui";
 
-/** Why Printfix — each promise sits next to its evidence: a client's words, a real project, or the process. */
+/** Why Printfix: each promise sits next to its evidence: a client's words, a real project, or the process. */
 export default function Why() {
   return (
     <section className="section bg-white" aria-labelledby="why-title">
       <div className="wrap">
         <Reveal>
-          <Label>{why.label}</Label>
-          <h2 id="why-title" className="display mt-6 max-w-[15ch] text-[clamp(34px,4.6vw,72px)] text-ink">{why.title}</h2>
+          <h2 id="why-title" className="display max-w-[15ch] text-[clamp(34px,4.6vw,72px)] text-ink">{why.title}</h2>
         </Reveal>
         <ol className="mt-14 border-t border-ink lg:mt-20">
           {why.points.map((pt, i) => (
@@ -29,7 +28,7 @@ export default function Why() {
                 {pt.proof.kind === "image" && (
                   <figure>
                     <img src={pt.proof.src} alt={pt.proof.alt} width={2016} height={1892} loading="lazy" className="aspect-[16/10] w-full bg-stone object-cover" />
-                    <figcaption className="label mt-3 text-muted">Glide V2 · die-cut insert</figcaption>
+                    <figcaption className="label mt-3 text-muted">Glide V2, die-cut insert</figcaption>
                   </figure>
                 )}
                 {pt.proof.kind === "link" && (

@@ -2,10 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useMotionValueEvent } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import Link from "next/link";
 import { industries } from "../../content";
-import { EASE, Label, Preload, Reveal } from "../ui";
+import { EASE, Preload, Reveal } from "../ui";
 import { useChoreo, useSectionProgress } from "../useChoreo";
 
 /**
@@ -33,11 +33,8 @@ function IndustriesImpl({ choreo }: { choreo: boolean }) {
   const ind = industries[i];
 
   const head = (
-    <Reveal className="grid gap-6 lg:grid-cols-12">
-      <div className="lg:col-span-7">
-        <Label>Industries we serve</Label>
-        <h2 id="industries-title" className="display mt-6 text-[clamp(34px,4.6vw,72px)] text-ink">Made for different worlds.</h2>
-      </div>
+    <Reveal>
+      <h2 id="industries-title" className="display text-[clamp(34px,4.6vw,72px)] text-ink">Made for different worlds.</h2>
     </Reveal>
   );
 
@@ -65,7 +62,7 @@ function IndustriesImpl({ choreo }: { choreo: boolean }) {
 
   return (
     <section id="industries" ref={ref} className="relative h-[170vh]" aria-labelledby="industries-title">
-      <div className="sticky top-0 flex h-screen flex-col justify-center overflow-hidden">
+      <div className="sticky top-0 flex h-[100dvh] flex-col justify-center overflow-hidden">
         <Preload srcs={industries.map((x) => x.image.src)} />
         <div className="wrap">
           {head}

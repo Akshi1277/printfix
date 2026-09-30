@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Envelope, MapPin, Phone } from "@phosphor-icons/react/dist/ssr";
 import PageHead from "../components/PageHead";
 import Faq from "../components/Faq";
 import { Label, WhatsAppIcon } from "../components/ui";
@@ -7,7 +7,7 @@ import { company, whatsappLink } from "../content";
 import QuoteForm from "./QuoteForm";
 
 export const metadata: Metadata = {
-  title: "Get a Quote — Contact Us",
+  title: "Get a Quote: Contact Us",
   description: `Request a quote for custom printing and packaging. Call ${company.phone}, WhatsApp or email ${company.email}. ${company.hours}.`,
   alternates: { canonical: "/contact/" },
 };
@@ -21,7 +21,7 @@ export default function ContactPage() {
         crumbs={[{ label: "Home", href: "/" }, { label: "Contact" }]}
         label="Get a quote"
         title="Have a project in mind?"
-        lede="Packaging is the first impression your brand makes — make it count. Tell us what you need and we'll come back with a quote."
+        lede="Packaging is the first impression your brand makes. Make it count. Tell us what you need and we'll come back with a quote."
       />
 
       <section className="wrap grid gap-16 pb-24 lg:grid-cols-12 lg:gap-8">
@@ -49,7 +49,7 @@ export default function ContactPage() {
               <a href={company.phoneHref} className="text-ink hover:text-red">{company.phone}</a>
             </li>
             <li className={row}>
-              <Mail aria-hidden="true" className="mt-0.5 h-5 w-5 text-red" />
+              <Envelope aria-hidden="true" className="mt-0.5 h-5 w-5 text-red" />
               <a href={`mailto:${company.email}`} className="break-all text-ink hover:text-red">{company.email}</a>
             </li>
             <li className={row}>
