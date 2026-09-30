@@ -3,8 +3,8 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { animate, motion, useMotionTemplate, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
-import { ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { AnimatePresence, animate, motion, useMotionTemplate, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
+import { ArrowRight, HandGrabbing } from "@phosphor-icons/react/dist/ssr";
 import { hero, quoteHref } from "../../content";
 import { EASE } from "../ui";
 import { useFinePointer } from "../useChoreo";
@@ -20,43 +20,42 @@ import { useFinePointer } from "../useChoreo";
 export default function Hero() {
   const reduce = useReducedMotion() ?? false;
   const fine = useFinePointer();
-  const t = (delay: number, dur = 0.8) => (reduce ? { duration: 0 } : { duration: dur, ease: EASE, delay });
 
   return (
     <section className="relative overflow-hidden bg-[radial-gradient(ellipse_at_70%_55%,#FBFAF7_0%,#F4F3F0_50%,#E9E6DF_100%)]" aria-labelledby="hero-title">
       <RegMarks reduce={reduce} />
 
-      {/* phone: label + headline, then the box, then copy + CTAs. Desktop: type left, box right. */}
+      {/* phone: headline, then copy + CTAs (above the fold), then the box. Desktop: type left, box right. */}
       <div className="wrap relative grid min-h-[100dvh] content-center gap-y-8 pb-12 pt-28 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-0 lg:pb-16 lg:pt-24">
-        <div className="relative z-10 lg:col-span-7 lg:row-start-1 lg:self-end">
-          <motion.p initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={t(0.05, 0.6)} className="label flex items-center gap-3 text-muted">
+        <div className="relative z-10 order-1 lg:order-none lg:col-span-7 lg:row-start-1 lg:self-end">
+          <p className="hero-fade label flex items-center gap-3 text-muted" style={{ animationDelay: "0.05s" }}>
             <RegTarget />
             {hero.label}
-          </motion.p>
+          </p>
           <h1 id="hero-title" className="display mt-6 text-[clamp(52px,min(7vw,12.5vh),136px)] uppercase leading-[0.86] tracking-[-0.045em] text-ink">
             {["Packaging", "people", "notice."].map((w, i) => (
               <span key={w} className="block overflow-hidden pb-[0.04em]">
-                <motion.span initial={reduce ? false : { y: "105%" }} animate={{ y: 0 }} transition={t(0.15 + i * 0.09, 0.9)} className={`block ${i === 2 ? "text-red" : ""}`}>
+                <span className={`hero-rise block ${i === 2 ? "text-red" : ""}`} style={{ animationDelay: `${0.12 + i * 0.09}s` }}>
                   {w}
-                </motion.span>
+                </span>
               </span>
             ))}
           </h1>
         </div>
 
-        <div className="relative lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1 lg:self-center">
+        <div className="relative order-3 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1 lg:self-center">
           <BoxStage reduce={reduce} fine={fine} />
         </div>
 
-        <div className="relative z-10 lg:col-span-7 lg:row-start-2 lg:pt-8">
-          <motion.p initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={t(0.6, 0.7)} className="max-w-[470px] text-[16px] leading-relaxed text-ink-2 md:text-[17px]">
+        <div className="relative z-10 order-2 lg:order-none lg:col-span-7 lg:row-start-2 lg:pt-8">
+          <p className="hero-fade max-w-[470px] text-[16px] leading-relaxed text-ink-2 md:text-[17px]" style={{ animationDelay: "0.5s" }}>
             Rigid boxes, cartons, mailers, bags and books, <FinishWord kind="offset">offset printed</FinishWord>, <FinishWord kind="foil">foiled</FinishWord>,{" "}
             <FinishWord kind="emboss">embossed</FinishWord> and finished for your brand, at low MOQ.
-          </motion.p>
-          <motion.div initial={reduce ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={t(0.72, 0.7)} className="mt-8 flex flex-wrap gap-3">
+          </p>
+          <div className="hero-fade mt-8 flex flex-wrap gap-3" style={{ animationDelay: "0.62s" }}>
             <HeroCta href={quoteHref} primary>Get a quote</HeroCta>
             <HeroCta href="/work/">View our work</HeroCta>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
@@ -91,6 +90,8 @@ function BoxStage({ reduce, fine }: { reduce: boolean; fine: boolean }) {
   const [revealed, setRevealed] = useState(false);
   const mountedAt = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
+  const [hover, setHover] = useState(false);
+  const [used, setUsed] = useState(false);
   const sweep = useMotionValue(0);
 
   useEffect(() => {
@@ -130,7 +131,13 @@ function BoxStage({ reduce, fine }: { reduce: boolean; fine: boolean }) {
 
   return (
     <div>
-      <div ref={stageRef} className="relative mx-auto aspect-square w-full max-w-[620px] select-none">
+      <div
+        ref={stageRef}
+        onPointerEnter={() => setHover(true)}
+        onPointerLeave={() => setHover(false)}
+        className="relative mx-auto aspect-square w-full max-w-[420px] select-none lg:max-w-[620px]"
+      >
+        <div className="hero-fade absolute inset-0" style={{ animationDelay: "0.25s" }}>
         <motion.img
           src="/hero/aethara.webp"
           srcSet="/hero/aethara-sm.webp 640w, /hero/aethara.webp 1500w"
@@ -139,20 +146,21 @@ function BoxStage({ reduce, fine }: { reduce: boolean; fine: boolean }) {
           width={1500}
           height={1518}
           fetchPriority="high"
-          initial={reduce ? false : { opacity: 0, y: 24 }}
-          animate={{ opacity: revealed ? 0 : 1, y: 0 }}
-          transition={{ duration: 0.9, ease: EASE, delay: revealed ? 0 : 0.25 }}
+          initial={false}
+          animate={{ opacity: revealed ? 0 : 1 }}
+          transition={{ duration: 0.4, ease: EASE }}
           style={live ? { WebkitMaskImage: photoMask, maskImage: photoMask } : undefined}
           draggable={false}
-          className="pointer-events-none absolute select-none left-[13%] top-[13%] h-[74%] w-[74%] object-contain drop-shadow-[0_30px_26px_rgba(30,24,18,0.26)]"
+          className="pointer-events-none absolute left-[13%] top-[13%] h-[74%] w-[74%] select-none object-contain"
         />
+        </div>
         {live && (
           <>
             <motion.div
               style={{ WebkitMaskImage: sceneMask, maskImage: sceneMask, left: `-${BLEED_L * 100}%`, right: `-${BLEED_R * 100}%` }}
               className="pointer-events-none absolute inset-y-0"
             >
-              <BoxScene onReady={() => setReady(true)} sweep={sweep} eventSource={stageRef} />
+              <BoxScene onReady={() => setReady(true)} sweep={sweep} eventSource={stageRef} onInteract={() => setUsed(true)} />
             </motion.div>
             {/* the light: a soft warm band riding the seam */}
             <motion.div
@@ -160,6 +168,19 @@ function BoxStage({ reduce, fine }: { reduce: boolean; fine: boolean }) {
               style={{ left: bandLeft, opacity: bandOpacity }}
               className="pointer-events-none absolute inset-y-[4%] w-[26%] -translate-x-1/2 bg-[linear-gradient(90deg,rgba(255,247,230,0)_0%,rgba(255,247,230,0.75)_50%,rgba(255,247,230,0)_100%)] mix-blend-soft-light"
             />
+            <AnimatePresence>
+              {revealed && hover && !used && (
+                <motion.p
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 4 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                  className="pointer-events-none absolute bottom-[13%] left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-ink px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-white"
+                >
+                  <HandGrabbing aria-hidden="true" weight="bold" className="h-4 w-4" /> Drag to turn, click to open
+                </motion.p>
+              )}
+            </AnimatePresence>
             <motion.div
               aria-hidden="true"
               style={{ left: bandLeft, opacity: bandOpacity }}
@@ -168,20 +189,14 @@ function BoxStage({ reduce, fine }: { reduce: boolean; fine: boolean }) {
           </>
         )}
       </div>
-      <div className="mx-auto mt-2 flex max-w-[620px] items-end justify-between gap-6 border-t border-ink/15 pt-4">
+      <div className="relative mx-auto -mt-[7%] flex max-w-[420px] items-end justify-between gap-6 border-t border-ink/15 pt-4 lg:max-w-[620px]">
         <div>
           <p className="text-[17px] font-semibold text-ink [font-stretch:108%]">Aethara</p>
           <p className="mt-1 text-[14px] text-muted">Book-style rigid box, hidden magnetic flap, gold foil</p>
         </div>
-        {live ? (
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: revealed ? 1 : 0 }} transition={{ duration: 0.6 }} className="label shrink-0 text-muted">
-            Drag to turn, click to open
-          </motion.p>
-        ) : (
-          <Link href="/work/aethara/" className="label shrink-0 text-ink underline decoration-ink/30 underline-offset-4 hover:text-red">
-            See the project
-          </Link>
-        )}
+        <Link href="/work/aethara/" className="label shrink-0 text-ink underline decoration-ink/30 underline-offset-4 hover:text-red">
+          See the project
+        </Link>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { Environment, Lightformer, useTexture } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import type { MotionValue } from "framer-motion";
 
 /*
@@ -35,8 +36,10 @@ export default function BoxScene({
   onReady,
   sweep,
   eventSource,
+  onInteract,
 }: {
   onReady?: () => void;
+  onInteract?: () => void;
   sweep?: MotionValue<number>;
   eventSource?: React.RefObject<HTMLElement | null>;
 }) {
@@ -74,30 +77,45 @@ export default function BoxScene({
         }}
       >
         <Suspense fallback={null}>
-          <Scene onReady={onReady} sweep={sweep} />
+          <Scene onReady={onReady} sweep={sweep} onInteract={onInteract} />
         </Suspense>
       </Canvas>
     </div>
   );
 }
 
-function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<number> }) {
+function Scene({ onReady, sweep, onInteract }: { onReady?: () => void; sweep?: MotionValue<number>; onInteract?: () => void }) {
   const camera = useThree((st) => st.camera);
   useEffect(() => camera.lookAt(0, -0.02, 0), [camera]);
-  const [faceMap, orm] = useTexture(["/hero/3d/aethara-face.webp", "/hero/3d/aethara-orm.webp"]);
+  const [faceMap, orm, faceN, paper, paperN, shade] = useTexture([
+    "/hero/3d/aethara-face.webp",
+    "/hero/3d/aethara-orm.webp",
+    "/hero/3d/aethara-n.webp", // stamped-foil relief
+    "/hero/3d/paper.webp",
+    "/hero/3d/paper-n.webp",
+    "/hero/3d/inner-shade.webp",
+  ]);
   const { gl, size } = useThree();
 
   useMemo(() => {
     faceMap.colorSpace = THREE.SRGBColorSpace;
     faceMap.anisotropy = gl.capabilities.getMaxAnisotropy();
     orm.colorSpace = THREE.NoColorSpace;
-  }, [faceMap, orm, gl]);
+    faceN.colorSpace = THREE.NoColorSpace;
+    paper.colorSpace = THREE.SRGBColorSpace;
+    paperN.colorSpace = THREE.NoColorSpace;
+    shade.colorSpace = THREE.SRGBColorSpace;
+    for (const t of [paper, paperN]) {
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(2.5, 2.5);
+    }
+  }, [faceMap, orm, faceN, paper, paperN, shade, gl]);
 
 
   const mat = useMemo(() => {
-    const grain = paperGrain();
-    const navy = new THREE.MeshStandardMaterial({ color: NAVY, roughness: 0.78, metalness: 0, map: grain });
-    const cream = new THREE.MeshStandardMaterial({ color: CREAM, roughness: 0.92, metalness: 0, map: grain });
+    const paperish = { map: paper, normalMap: paperN, normalScale: new THREE.Vector2(0.35, 0.35) };
+    const navy = new THREE.MeshStandardMaterial({ color: NAVY, roughness: 0.78, metalness: 0, ...paperish });
+    const cream = new THREE.MeshStandardMaterial({ color: CREAM, roughness: 0.92, metalness: 0, ...paperish });
     const face = new THREE.MeshStandardMaterial({
       map: faceMap,
       roughnessMap: orm, // green channel
@@ -105,16 +123,21 @@ function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<n
       roughness: 1.4, // foil ~0.42: satin, like the photographed foil, still catching the light
       metalness: 0.6,
       envMapIntensity: 1.5,
+      normalMap: faceN, // the foil sits a hair into the board, so its edges catch the light
+      normalScale: new THREE.Vector2(0.9, 0.9),
     });
-    const edge = new THREE.MeshStandardMaterial({ color: GOLD_EDGE, roughness: 0.45, metalness: 0.55, map: grain });
-    return { navy, cream, face, edge };
-  }, [faceMap, orm]);
+    const edge = new THREE.MeshStandardMaterial({ color: GOLD_EDGE, roughness: 0.45, metalness: 0.55, ...paperish });
+    // soft shading into the inside corners, laid over the lining as a decal
+    const inner = new THREE.MeshBasicMaterial({ map: shade, transparent: true, depthWrite: false, toneMapped: false });
+    return { navy, cream, face, edge, inner };
+  }, [faceMap, orm, faceN, paper, paperN, shade]);
 
   // ---- motion state
   const stage = useRef<THREE.Group>(null);
   const turn = useRef<THREE.Group>(null);
   const hinge = useRef<THREE.Group>(null);
   const light = useRef<THREE.PointLight>(null);
+  const inside = useRef<THREE.PointLight>(null);
   const s = useRef({ t: 0, frames: 0, revealedAt: -1, drag: 0, dragging: false, lastX: 0, open: false, angle: 0 });
   const [, force] = useState(0);
 
@@ -169,6 +192,8 @@ function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<n
       stage.current.position.x = 0.02 - 0.24 * f;
       stage.current.scale.setScalar(1 - 0.3 * f);
     }
+    // opening the cover lets light into the box: the lining warms up as it opens
+    if (inside.current) inside.current.intensity = 2.6 * Math.min(1, Math.max(0, st.angle / OPEN));
 
     // raking light: during the reveal it rides the sweep across the foil, afterwards it follows the pointer
     if (light.current) {
@@ -187,6 +212,7 @@ function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<n
   // ---- drag to turn (tracked on the window, so it keeps turning off the box's edge), click to open
   const onDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
+    onInteract?.();
     const st = s.current;
     st.dragging = true;
     st.lastX = e.clientX;
@@ -194,7 +220,9 @@ function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<n
     const move = (ev: PointerEvent) => {
       const dx = ev.clientX - st.lastX;
       st.lastX = ev.clientX;
-      st.drag = THREE.MathUtils.clamp(st.drag + (dx / size.height) * 4.2, -1.9, 1.3);
+      // open, the cover swings toward the camera, so it turns less far and never crosses the caption
+      const [lo, hi] = st.open ? [-0.3, 0.55] : [-1.9, 1.3];
+      st.drag = THREE.MathUtils.clamp(st.drag + (dx / size.height) * 4.2, lo, hi);
     };
     const up = () => {
       st.dragging = false;
@@ -209,8 +237,10 @@ function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<n
   };
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation(); // one click, however many faces the ray passes through
+    onInteract?.();
     if (e.delta > 6) return; // it was a drag
     s.current.open = !s.current.open;
+    if (s.current.open) s.current.drag = THREE.MathUtils.clamp(s.current.drag, -0.3, 0.55);
     force((n) => n + 1);
   };
   const setCursor = (c: string) => (document.body.style.cursor = c);
@@ -219,13 +249,13 @@ function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<n
     <>
       <ambientLight intensity={0.28} />
       <directionalLight position={[-2.5, 3, 3]} intensity={1.1} />
-      <pointLight ref={light} position={[0, 0.4, 2.2]} intensity={7} distance={0} decay={2} color="#fff4df" />
+      <pointLight ref={light} position={[0, 0.4, 2.2]} intensity={7} distance={0} decay={2} color="#fffaf2" />
       <Environment resolution={256} frames={1}>
         <Lightformer form="rect" intensity={2.2} position={[-3, 2, 3]} scale={[4, 3, 1]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={1.4} position={[3, 1, 2]} scale={[1.5, 4, 1]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={0.8} position={[0, 4, 0]} rotation-x={Math.PI / 2} scale={[6, 6, 1]} />
         <Lightformer form="rect" intensity={0.5} color="#f3e6cc" position={[0, -2, 3]} scale={[6, 1, 1]} target={[0, 0, 0]} />
-        <Lightformer form="rect" intensity={1.1} color="#fff1d6" position={[0, 0.5, 4]} scale={[5, 3, 1]} target={[0, 0, 0]} />
+        <Lightformer form="rect" intensity={1.1} color="#fffaf0" position={[0, 0.5, 4]} scale={[5, 3, 1]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={0.9} position={[-4, 0, -1]} scale={[2, 4, 1]} target={[0, 0, 0]} />
       </Environment>
 
@@ -238,18 +268,25 @@ function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<n
           onPointerOver={() => setCursor("grab")}
           onPointerOut={() => !s.current.dragging && setCursor("")}
         >
-          <Tray navy={mat.navy} cream={mat.cream} edge={mat.edge} />
+          <Tray navy={mat.navy} cream={mat.cream} edge={mat.edge} inner={mat.inner} />
+          <pointLight ref={inside} position={[-0.05, 0.1, 0.55]} intensity={0} distance={2.2} decay={2} color="#fff3de" />
 
           {/* front cover, hinged on the right-hand spine like a book */}
           <group ref={hinge} position={[W / 2, 0, T / 2 - B]}>
             <group position={[-W / 2, 0, 0]}>
               <mesh position={[0, 0, B / 2]} material={[mat.navy, mat.navy, mat.navy, mat.navy, mat.face, mat.cream]}>
-                <boxGeometry args={[W, H, B]} />
+                <RBox args={[W, H, B]} />
               </mesh>
-              <Rims z={B - SHELL / 2} navy={mat.navy} cream={mat.cream} open="back" />
+              {/* inside of the cover: corner shading and the hidden magnetic catch near its free edge */}
+              <mesh position={[0, 0, -0.0015]} rotation-y={Math.PI} material={mat.inner}>
+                <planeGeometry args={[W - 0.01, H - 0.01]} />
+              </mesh>
+              <mesh position={[-W / 2 + 0.07, 0, -0.003]} rotation-x={Math.PI / 2} scale={[0.75, 1, 1.35]} material={mat.edge}>
+                <cylinderGeometry args={[0.024, 0.024, 0.004, 32]} />
+              </mesh>
               {/* ribbon pull tab at the foot of the cover */}
               <mesh position={[W * 0.08, -H / 2 + 0.018, B + 0.004]} material={mat.navy}>
-                <boxGeometry args={[0.075, 0.05, 0.008]} />
+                <RBox args={[0.075, 0.05, 0.008]} radius={0.003} />
               </mesh>
             </group>
           </group>
@@ -262,60 +299,62 @@ function Scene({ onReady, sweep }: { onReady?: () => void; sweep?: MotionValue<n
 }
 
 /**
- * Book-style construction, as in the photograph: a shallow navy base shell (back board, spine and
- * rims) and a matching shallow cover shell, with the gold-papered tray showing in the gap between.
+ * Book-style construction, as in the photograph: a navy base (back board, right-hand spine, full-depth
+ * top and bottom walls, and a rim at the back of the opening side), a flat navy cover, and the tray's
+ * gold-papered fore-edge showing along the opening side like the gilded edge of a book.
+ * Every board has softly rounded wrapped edges.
  */
-const SHELL = 0.13; // depth of the navy rims on the base and on the cover
-const I = 0.032; // how far the tray sits in from the shells
+const I = 0.032; // how far the gold fore-edge sits in from the boards
+const RIM = 0.55; // share of the opening side covered by the navy rim, from the back
 
-// face order for boxGeometry materials: +x, -x, +y, -y, +z, -z
-function Rims({ z, navy, cream, open }: { z: number; navy: THREE.Material; cream: THREE.Material; open: "front" | "back" }) {
-  // left, top and bottom rims of one shell, SHELL deep, centred at z
-  // the rim edges are wrapped board, so navy on both ends; `open` only documents which way the shell faces
-  void open;
-  const inner = [navy, navy];
-  return (
-    <>
-      <mesh position={[-W / 2 + B / 2, 0, z]} material={[cream, navy, navy, navy, ...inner]}>
-        <boxGeometry args={[B, H, SHELL]} />
-      </mesh>
-      <mesh position={[0, H / 2 - B / 2, z]} material={[navy, navy, navy, cream, ...inner]}>
-        <boxGeometry args={[W - 2 * B, B, SHELL]} />
-      </mesh>
-      <mesh position={[0, -H / 2 + B / 2, z]} material={[navy, navy, cream, navy, ...inner]}>
-        <boxGeometry args={[W - 2 * B, B, SHELL]} />
-      </mesh>
-    </>
-  );
-}
-
-function Tray({ navy, cream, edge }: { navy: THREE.Material; cream: THREE.Material; edge: THREE.Material }) {
-  const d = T - 2 * B - 0.006; // tray depth, between back board and cover panel
-  const tw = W - B - I; // from the spine to the inset opening edge
-  const th = H - 2 * I;
-  const tx = W / 2 - B - tw / 2;
+// face order for box materials: +x, -x, +y, -y, +z, -z
+function Tray({ navy, cream, edge, inner: shadeMat }: { navy: THREE.Material; cream: THREE.Material; edge: THREE.Material; inner: THREE.Material }) {
+  const inner = T - B; // from the back of the box to the back of the cover
+  const zc = -B / 2; // centre of that span
+  const rim = inner * RIM;
   return (
     <group>
-      {/* base shell: back board, full-depth spine, rims */}
+      {/* back board */}
       <mesh position={[0, 0, -T / 2 + B / 2]} material={[navy, navy, navy, navy, cream, navy]}>
-        <boxGeometry args={[W, H, B]} />
+        <RBox args={[W, H, B]} />
       </mesh>
+      {/* right-hand spine, full depth: the cover hinges on it */}
       <mesh position={[W / 2 - B / 2, 0, 0]} material={[navy, cream, navy, navy, navy, navy]}>
-        <boxGeometry args={[B, H, T]} />
+        <RBox args={[B, H, T]} />
       </mesh>
-      <Rims z={-T / 2 + SHELL / 2} navy={navy} cream={cream} open="front" />
-      {/* the tray: gold outside, cream inside */}
-      <mesh position={[tx - tw / 2 + B / 2, 0, 0]} material={[cream, edge, edge, edge, edge, edge]}>
-        <boxGeometry args={[B, th, d]} />
+      {/* top and bottom walls, navy outside, cream inside */}
+      <mesh position={[-B / 2, H / 2 - B / 2, zc]} material={[navy, navy, navy, cream, navy, navy]}>
+        <RBox args={[W - B, B, inner]} />
       </mesh>
-      <mesh position={[tx, th / 2 - B / 2, 0]} material={[edge, edge, edge, cream, edge, edge]}>
-        <boxGeometry args={[tw, B, d]} />
+      <mesh position={[-B / 2, -H / 2 + B / 2, zc]} material={[navy, navy, cream, navy, navy, navy]}>
+        <RBox args={[W - B, B, inner]} />
       </mesh>
-      <mesh position={[tx, -th / 2 + B / 2, 0]} material={[edge, edge, cream, edge, edge, edge]}>
-        <boxGeometry args={[tw, B, d]} />
+      {/* navy rim at the back of the opening side */}
+      <mesh position={[-W / 2 + B / 2, 0, -T / 2 + rim / 2]} material={[cream, navy, navy, navy, navy, navy]}>
+        <RBox args={[B, H - 2 * B, rim]} />
+      </mesh>
+      {/* soft shading into the inside corners of the back lining */}
+      <mesh position={[(I + B) / 2 - B / 2, 0, -T / 2 + B + 0.0015]} material={shadeMat}>
+        <planeGeometry args={[W - I - 2 * B, H - 2 * B]} />
+      </mesh>
+      {/* the catch's partner, set into the front of the fore-edge */}
+      <mesh position={[-W / 2 + I + B / 2, 0, zc + (inner - 0.006) / 2 + 0.001]} rotation-x={Math.PI / 2} scale={[0.45, 1, 1.2]} material={edge}>
+        <cylinderGeometry args={[0.02, 0.02, 0.003, 24]} />
+      </mesh>
+      {/* the gold fore-edge, set in a little, cream on the inside */}
+      <mesh position={[-W / 2 + I + B / 2, 0, zc]} material={[cream, edge, edge, edge, edge, edge]}>
+        <RBox args={[B, H - 2 * B - 0.004, inner - 0.006]} />
       </mesh>
     </group>
   );
+}
+
+/** A box with softly rounded edges; keeps the six face groups so per-face materials still apply. */
+function RBox({ args, radius = 0.008 }: { args: [number, number, number]; radius?: number }) {
+  const [x, y, z] = args;
+  const geo = useMemo(() => new RoundedBoxGeometry(x, y, z, 2, Math.min(radius, Math.min(x, y, z) / 2 - 0.0005)), [x, y, z, radius]);
+  useEffect(() => () => geo.dispose(), [geo]);
+  return <primitive object={geo} attach="geometry" />;
 }
 
 /** A soft contact shadow: one blurred ellipse on the table, cheap and steady. */
@@ -325,8 +364,8 @@ function SoftShadow() {
     c.width = c.height = 256;
     const g = c.getContext("2d")!;
     const grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-    grd.addColorStop(0, "rgba(42,33,24,0.55)");
-    grd.addColorStop(0.45, "rgba(42,33,24,0.22)");
+    grd.addColorStop(0, "rgba(42,33,24,0.32)");
+    grd.addColorStop(0.45, "rgba(42,33,24,0.12)");
     grd.addColorStop(1, "rgba(42,33,24,0)");
     g.fillStyle = grd;
     g.fillRect(0, 0, 256, 256);
@@ -342,21 +381,3 @@ function SoftShadow() {
   );
 }
 
-/** Fine paper grain (multiplies the base colour by 0.93–1.0) so board reads as paper, not plastic. */
-function paperGrain() {
-  const c = document.createElement("canvas");
-  c.width = c.height = 256;
-  const g = c.getContext("2d")!;
-  const img = g.createImageData(256, 256);
-  for (let i = 0; i < img.data.length; i += 4) {
-    const v = 237 + Math.random() * 18;
-    img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
-    img.data[i + 3] = 255;
-  }
-  g.putImageData(img, 0, 0);
-  const t = new THREE.CanvasTexture(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(3, 3);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
