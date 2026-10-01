@@ -200,12 +200,33 @@ export const process = [
 export const why = {
   label: "Why Printfix",
   title: "Five promises, and the proof behind each.",
+  lede: "What you can hold us to on every order, and where to see it for yourself.",
   points: [
-    { title: "On-time delivery", body: "Production is planned around your deadline and the date is set with your quote.", proof: { kind: "quote", text: "Handling everything from small jobs to tight deadlines without any fuss.", by: "Rashid Patel, Director, Vero Forza" } },
-    { title: "Print & pack, unified", body: "Design, sampling, printing, finishing and packing run as one sequence, so the structure, the artwork and the finish are decided together, not handed between suppliers.", proof: { kind: "link", text: "See the five steps", href: "#process" } },
-    { title: "Customisation expertise", body: "Built around the product inside it. For Glide V2, the rigid box carries a die-cut insert shaped for the finger sleeves.", proof: { kind: "image", src: "/work/glide-red-3.webp", alt: "Glide V2 red rigid box open to show its die-cut foam insert" } },
-    { title: "Premium. Fair. Value.", body: "Price follows the specification (board, size, print, finishes and quantity), and low MOQ means you order what you need.", proof: { kind: "quote", text: "Very reasonable pricing for such high-quality output.", by: "Ashfaque Shaikh, Procurement Manager, Birra Fragrances LLP" } },
-    { title: "Experienced management", body: "Every custom order gets a digital proof before production, and files are checked, not just printed.", proof: { kind: "quote", text: "They even caught a design error in my final file before printing, which saved us from a huge mistake.", by: "Rushab Nandu, Director, RN Kids" } },
+    {
+      title: "On-time delivery",
+      body: "Production is planned around your deadline, and the delivery date is set with your quote.",
+      proof: { kind: "image", src: "/work/gift-set-2.webp", alt: "Rows of finished kraft gift-set boxes packed and ready to ship", caption: "Ryabina gift sets, packed for dispatch" },
+    },
+    {
+      title: "Print & pack, unified",
+      body: "Design, sampling, printing, finishing and packing run as one sequence, so the structure, the artwork and the finish are decided together, not handed between suppliers.",
+      proof: { kind: "steps", href: "#process", cta: "See how each step works" },
+    },
+    {
+      title: "Customisation expertise",
+      body: "Built around the product inside it. For Glide V2, the rigid box carries a die-cut insert shaped for the finger sleeves.",
+      proof: { kind: "image", src: "/work/glide-red-3.webp", alt: "Glide V2 red rigid box open to show its die-cut foam insert", caption: "Glide V2, die-cut insert" },
+    },
+    {
+      title: "Premium. Fair. Value.",
+      body: "Price follows the specification, and low MOQ means you order what you need.",
+      proof: { kind: "spec", items: ["Board", "Size", "Print", "Finishes", "Quantity"], client: "Birra Fragrances", logo: "/clients/birra.png" },
+    },
+    {
+      title: "Experienced management",
+      body: "Every custom order gets a digital proof before production, and files are checked, not just printed.",
+      proof: { kind: "review", client: "RN Kids", logo: "/clients/rn-kids.png", note: "Their final file had an error. It was caught at proof stage." },
+    },
   ],
 } as const;
 

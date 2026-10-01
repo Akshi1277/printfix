@@ -13,7 +13,7 @@ export default function Testimonials() {
   const go = (d: number) => setI((v) => (v + d + testimonials.length) % testimonials.length);
 
   return (
-    <section className="section bg-white" aria-labelledby="clients-title">
+    <section id="testimonials" className="section scroll-mt-20 bg-white" aria-labelledby="clients-title">
       <div className="wrap">
         <Reveal className="flex flex-wrap items-end justify-between gap-6">
           {/* opener: a single oversized quote mark instead of the usual label */}
