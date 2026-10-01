@@ -15,7 +15,7 @@ export default function Why() {
   const [onTime, unified, custom, value, mgmt] = [0, 1, 2, 3, 4].map(P);
 
   return (
-    <section className="section bg-white" aria-labelledby="why-title">
+    <section className="section bg-white pb-[clamp(56px,6vw,88px)]" aria-labelledby="why-title">
       <div className="wrap">
         <Reveal>
           <h2 id="why-title" className="display max-w-[16ch] text-[clamp(34px,4.6vw,72px)] text-ink [text-wrap:balance]">{why.title}</h2>
@@ -105,7 +105,7 @@ function TileHead({ p, dark = false }: { p: Point; dark?: boolean }) {
 function PhotoTile({ p, tall = false }: { p: Point; tall?: boolean }) {
   if (p.proof.kind !== "image") return null;
   return (
-    <figure className={`group relative h-full overflow-hidden bg-stone ${tall ? "min-h-[460px] lg:min-h-[620px]" : "min-h-[400px]"}`}>
+    <figure className={`group relative h-full overflow-hidden bg-stone ${tall ? "min-h-[460px] lg:min-h-[620px]" : "min-h-[380px] lg:min-h-[320px]"}`}>
       <img
         src={p.proof.src}
         alt={p.proof.alt}

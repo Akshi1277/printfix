@@ -61,7 +61,7 @@ function ProcessStickyImpl({ choreo }: { choreo: boolean }) {
       className="relative h-[320vh]"
       aria-labelledby="process-title"
     >
-      <div className="sticky top-0 flex h-[100dvh] items-center overflow-hidden">
+      <div className="sticky top-0 flex h-[100dvh] items-start overflow-hidden pt-[calc(64px+6vh)]">
         <Preload srcs={process.map((x) => x.image.src)} />
         <div className="wrap grid grid-cols-12 items-center gap-8">
           <div className="col-span-6">
@@ -105,7 +105,7 @@ function ProcessStickyImpl({ choreo }: { choreo: boolean }) {
             </div>
           </div>
 
-          <div className="relative col-span-5 col-start-8 aspect-[1008/946] max-h-[72vh] overflow-hidden bg-stone">
+          <div className="relative col-span-5 col-start-8 aspect-[1008/946] max-h-[calc(100dvh-64px-14vh)] overflow-hidden bg-stone">
             <AnimatePresence initial={false}>
               <motion.img
                 key={s.image.src}

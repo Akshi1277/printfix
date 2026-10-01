@@ -32,7 +32,7 @@ export default function Finishes() {
   };
 
   return (
-    <section className="section bg-charcoal text-white" aria-labelledby="finish-title">
+    <section className="section bg-charcoal pb-[clamp(56px,6vw,88px)] text-white" aria-labelledby="finish-title">
       <div className="wrap">
         <Reveal>
           <h2 id="finish-title" className="display text-[clamp(38px,5.4vw,88px)]">The detail is in the finish.</h2>
