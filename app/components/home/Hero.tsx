@@ -2,33 +2,64 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, animate, motion, useMotionTemplate, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
-import { ArrowRight, HandGrabbing } from "@phosphor-icons/react/dist/ssr";
-import { hero, quoteHref } from "../../content";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, animate, motion, useMotionTemplate, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
+import { ArrowRight, HandGrabbing, Pause, Play } from "@phosphor-icons/react/dist/ssr";
+import { hero, heroBoxes, quoteHref } from "../../content";
 import { EASE } from "../ui";
-import { useFinePointer } from "../useChoreo";
 
 /*
  * HERO: "light reveals the object".
- * The headline rises into place, sharp from the first frame. Beside it, the Aethara photograph;
- * a band of warm light sweeps across it, and behind the light the photo becomes the real-time 3D box,
- * posed to sit exactly where the photo was. The same light rakes the foil as it passes. Then the cover
- * peeks once, and the box is yours to turn and open. One screen tall, no pinned scroll.
+ * The headline rises into place, sharp from the first frame. A band of warm light crosses the whole
+ * hero, behind the type, and leaves the real-time 3D box behind it, raking the foil as it passes. Then
+ * the cover peeks once, and the box is yours to turn and open. Every few seconds the light crosses
+ * again: behind it the next box, and the paper in that box's colour. One screen tall, no pinned scroll.
  */
 
 export default function Hero() {
   const reduce = useReducedMotion() ?? false;
-  const fine = useFinePointer();
+  const [index, setIndex] = useState(0);
+  const [prev, setPrev] = useState<number | null>(null); // the box leaving, while the light crosses
+  const light = useHeroLight();
+
+  // the new paper is laid down behind the light: everything left of the seam is the incoming box's colour
+  const wipeA = useTransform(light.x, (x) => x - SOFT * light.geo.current.w);
+  const wipeB = useTransform(light.x, (x) => x + SOFT * light.geo.current.w);
+  const wipe = useMotionTemplate`linear-gradient(90deg, #000 ${wipeA}px, transparent ${wipeB}px)`;
+  const layers = prev === null ? [index] : [prev, index];
 
   return (
-    <section className="relative overflow-hidden bg-[radial-gradient(ellipse_at_70%_55%,#FBFAF7_0%,#F4F3F0_50%,#E9E6DF_100%)]" aria-labelledby="hero-title">
+    <section className="relative overflow-hidden bg-[#DCE4F3]" aria-labelledby="hero-title">
+      {layers.map((i) => (
+        <motion.div
+          key={heroBoxes[i].slug}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{ background: tint(heroBoxes[i].theme), ...(prev !== null && i === index ? { WebkitMaskImage: wipe, maskImage: wipe } : {}) }}
+        />
+      ))}
+      {/* the light: a soft warm band across the full height, behind the type */}
+      <motion.div
+        aria-hidden="true"
+        style={{ left: light.x, opacity: light.opacity, width: `${BAND * 200}%` }}
+        className="pointer-events-none absolute inset-y-0 -translate-x-1/2 bg-[linear-gradient(90deg,rgba(255,251,243,0)_0%,rgba(255,251,243,0.72)_50%,rgba(255,251,243,0)_100%)]"
+      />
+      <motion.div
+        aria-hidden="true"
+        style={{ left: light.x, opacity: light.opacity }}
+        className="pointer-events-none absolute inset-y-0 w-[2px] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,253,248,0)_0%,rgba(255,253,248,0.95)_30%,rgba(255,253,248,0.95)_70%,rgba(255,253,248,0)_100%)]"
+      />
+      {/* the tint gives way to the site's cream paper at the foot, so the hero hands over to the page without a seam */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[20%] min-h-28 bg-[linear-gradient(180deg,rgba(244,243,240,0)_0%,rgba(244,243,240,0.6)_55%,#F4F3F0_100%)]"
+      />
       <RegMarks reduce={reduce} />
 
       {/* phone: headline, then copy + CTAs (above the fold), then the box. Desktop: type left, box right. */}
       <div className="wrap relative grid min-h-[100dvh] content-center gap-y-8 pb-12 pt-28 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-0 lg:pb-16 lg:pt-24">
         <div className="relative z-10 order-1 lg:order-none lg:col-span-7 lg:row-start-1 lg:self-end">
-          <p className="hero-fade label flex items-center gap-3 text-muted" style={{ animationDelay: "0.05s" }}>
+          <p className="hero-fade label flex items-center gap-3 text-ink-2" style={{ animationDelay: "0.05s" }}>
             <RegTarget />
             {hero.label}
           </p>
@@ -44,7 +75,7 @@ export default function Hero() {
         </div>
 
         <div className="relative order-3 lg:order-none lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1 lg:self-center">
-          <BoxStage reduce={reduce} fine={fine} />
+          <BoxStage reduce={reduce} index={index} setIndex={setIndex} prev={prev} setPrev={setPrev} light={light} />
         </div>
 
         <div className="relative z-10 order-2 lg:order-none lg:col-span-7 lg:row-start-2 lg:pt-8">
@@ -70,6 +101,37 @@ function FinishWord({ kind, children }: { kind: "offset" | "foil" | "emboss"; ch
 
 /* ------------------------------------------------------------------ the box */
 
+const tint = (t: string[]) => `radial-gradient(ellipse at 70% 55%, ${t[0]} 0%, ${t[1]} 50%, ${t[2]} 100%)`;
+
+// the light, as shares of the hero's width: its band's half-width, and the soft edge of what it reveals
+// (narrower than the band, so the edge is always under the light)
+const BAND = 0.11;
+const SOFT = 0.05;
+
+type Geo = { w: number; sl: number; sw: number }; // hero width; the box stage's left edge and width within it
+type HeroLight = {
+  sweep: MotionValue<number>; // the first reveal, 0..1
+  swap: MotionValue<number>; // a move between boxes, 0..1 (1 at rest)
+  x: MotionValue<number>; // where the light is, px from the hero's left edge
+  opacity: MotionValue<number>;
+  geo: React.RefObject<Geo>;
+};
+
+/** One light for the whole hero: it rides the first reveal, then each move between boxes. */
+function useHeroLight(): HeroLight {
+  const sweep = useMotionValue(0);
+  const swap = useMotionValue(1);
+  const geo = useRef<Geo>({ w: 1, sl: 0, sw: 1 });
+  const p = useTransform([sweep, swap], ([s, w]: number[]) => (s < 1 ? s : w));
+  // from fully off the left edge to fully off the right
+  const x = useTransform(p, (v) => {
+    const { w } = geo.current;
+    return v * w * (1 + 2 * BAND) - BAND * w;
+  });
+  const opacity = useTransform(p, [0, 0.04, 0.96, 1], [0, 1, 1, 0]);
+  return { sweep, swap, x, opacity, geo };
+}
+
 const BoxScene = dynamic(() => import("./BoxScene"), { ssr: false });
 // must match BLEED in BoxScene: how far the canvas extends beyond the stage square
 const BLEED_L = 0.6;
@@ -77,126 +139,262 @@ const BLEED_R = 0.08;
 
 // the sweep never starts before the headline has landed, however fast the 3D loads
 const SWEEP_EARLIEST = 1.1; // s after mount
-const SWEEP_DURATION = 1.35;
-const FEATHER = 9; // % of the stage: soft edge where photo and 3D blend, hidden under the light
+const SWEEP_DURATION = 1.9; // the light crossing the whole hero
+const SWAP_DURATION = 1.8;
+const DWELL = 5; // s each box holds the stage while playing
+const SWEEP_EASE = [0.65, 0, 0.35, 1] as const;
 
 /**
- * Desktop with motion: the photograph, then a light sweep that reveals the real-time 3D box behind it.
- * Phones and reduced motion: the photograph only.
+ * Real-time 3D on every screen. A light sweep reveals the first box; the same light carries each move
+ * to the next. Plays on its own until someone takes over: dragging, opening, picking a box or pausing
+ * stops it for good; hovering, or the hero leaving the screen, holds it. For reduced motion nothing moves
+ * on its own: no autoplay, no sweep, no idle sway; boxes change in place and turn only when dragged.
  */
-function BoxStage({ reduce, fine }: { reduce: boolean; fine: boolean }) {
-  const [wide, setWide] = useState(false);
+function BoxStage({
+  reduce,
+  index,
+  setIndex,
+  prev,
+  setPrev,
+  light,
+}: {
+  reduce: boolean;
+  index: number;
+  setIndex: (i: number) => void;
+  prev: number | null;
+  setPrev: (i: number | null) => void;
+  light: HeroLight;
+}) {
   const [ready, setReady] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const [loaded, setLoaded] = useState<boolean[]>(() => heroBoxes.map(() => false));
+  const [pending, setPending] = useState<number | null>(null); // a box asked for before it could be shown
+  const [playing, setPlaying] = useState(true);
+  const [onScreen, setOnScreen] = useState(true);
+  const [pageVisible, setPageVisible] = useState(true);
   const mountedAt = useRef(0);
   const stageRef = useRef<HTMLDivElement>(null);
+  const swapCtl = useRef<ReturnType<typeof animate> | null>(null);
   const [hover, setHover] = useState(false);
   const [used, setUsed] = useState(false);
-  const sweep = useMotionValue(0);
+  const { sweep, swap, geo } = light;
+  const tick = useMotionValue(0); // how far through its turn the box on show is, while playing
 
   useEffect(() => {
     mountedAt.current = performance.now();
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const on = () => setWide(mq.matches);
-    on();
-    mq.addEventListener("change", on);
-    return () => mq.removeEventListener("change", on);
+    const vis = () => setPageVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", vis);
+    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting));
+    if (stageRef.current) io.observe(stageRef.current);
+    return () => {
+      document.removeEventListener("visibilitychange", vis);
+      io.disconnect();
+      swapCtl.current?.stop();
+    };
   }, []);
-  const live = wide && fine && !reduce;
+  useEffect(() => {
+    const st = stageRef.current;
+    const sec = st?.closest("section");
+    if (!st || !sec) return;
+    const measure = () => {
+      const s = sec.getBoundingClientRect();
+      const r = st.getBoundingClientRect();
+      geo.current = { w: s.width, sl: r.left - s.left, sw: r.width };
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(sec);
+    ro.observe(st);
+    return () => ro.disconnect();
+  }, [geo]);
+  // nothing moves on its own for people who asked for less motion
+  useEffect(() => {
+    if (reduce) setPlaying(false);
+  }, [reduce]);
 
   useEffect(() => {
     if (!ready) return;
+    if (reduce) {
+      sweep.set(1);
+      setRevealed(true);
+      return;
+    }
     const since = (performance.now() - mountedAt.current) / 1000;
     const c = animate(sweep, 1, {
       duration: SWEEP_DURATION,
-      ease: [0.65, 0, 0.35, 1],
+      ease: SWEEP_EASE,
       delay: Math.max(0.15, SWEEP_EARLIEST - since),
       onComplete: () => setRevealed(true),
     });
     return () => c.stop();
-  }, [ready, sweep]);
+  }, [ready, reduce, sweep]);
 
-  // the seam travels left to right; the photo gives way behind it, the 3D appears
-  const edge = useTransform(sweep, (v) => v * (100 + 2 * FEATHER) - FEATHER);
-  const a = useTransform(edge, (e) => e - FEATHER);
-  const b = useTransform(edge, (e) => e + FEATHER);
-  const photoMask = useMotionTemplate`linear-gradient(90deg, transparent ${a}%, #000 ${b}%)`;
-  // the canvas is wider than the stage, so express the seam in the canvas's own percentages
+  const go = useCallback(
+    (to: number, byUser = false) => {
+      if (byUser) setPlaying(false);
+      to = (to + heroBoxes.length) % heroBoxes.length;
+      if (to === index) return setPending(null);
+      // asked for mid-move, or before that box is ready: remember it and go as soon as it can
+      if (prev !== null || !revealed || !loaded[to]) return setPending(to);
+      setPending(null);
+      tick.set(0);
+      setIndex(to);
+      if (reduce) return; // change in place
+      setPrev(index);
+      swap.set(0);
+      swapCtl.current = animate(swap, 1, { duration: SWAP_DURATION, ease: SWEEP_EASE, onComplete: () => setPrev(null) });
+    },
+    [index, prev, reduce, revealed, loaded, tick, swap, setIndex, setPrev],
+  );
+  useEffect(() => {
+    if (pending !== null && prev === null && revealed && loaded[pending]) go(pending);
+  }, [pending, prev, revealed, loaded, go]);
+
+  // autoplay: fill the active segment, then move on; holding keeps the progress where it is
+  const next = (index + 1) % heroBoxes.length;
+  const running = playing && !hover && onScreen && pageVisible && prev === null && heroBoxes.length > 1 && revealed && loaded[next];
+  useEffect(() => {
+    if (!running) return;
+    const c = animate(tick, 1, { duration: DWELL * (1 - tick.get()), ease: "linear", onComplete: () => go(index + 1) });
+    return () => c.stop();
+  }, [running, index, tick, go]);
+
+  // the hero's light in the stage's own percentages, and in the (wider) canvas's
+  const toStage = (x: number) => ((x - geo.current.sl) / geo.current.sw) * 100;
   const toCanvas = (e: number) => ((BLEED_L + e / 100) / (1 + BLEED_L + BLEED_R)) * 100;
-  const ca = useTransform(a, toCanvas);
-  const cb = useTransform(b, toCanvas);
+  // the first reveal: the 3D appears behind the light, with the same soft edge as the paper
+  const soft = () => SOFT * geo.current.w;
+  const ca = useTransform(sweep, (v) => toCanvas(toStage(v * geo.current.w * (1 + 2 * BAND) - BAND * geo.current.w - soft())));
+  const cb = useTransform(sweep, (v) => toCanvas(toStage(v * geo.current.w * (1 + 2 * BAND) - BAND * geo.current.w + soft())));
   const sceneMask = useMotionTemplate`linear-gradient(90deg, #000 ${ca}%, transparent ${cb}%)`;
-  const bandLeft = useMotionTemplate`${edge}%`;
-  const bandOpacity = useTransform(sweep, [0, 0.06, 0.92, 1], [0, 1, 1, 0]);
+  // a move between boxes: each box is clipped at the light, in canvas terms
+  const seam = useTransform(light.x, (x) => toCanvas(toStage(x)) / 100);
+  const lineLeft = useTransform(light.x, (x) => `${toStage(x)}%`);
+
+  const box = heroBoxes[index];
+  // no hover on touch screens: show the hint for a few seconds once the box is revealed
+  const [mouse, setMouse] = useState(true);
+  useEffect(() => setMouse(window.matchMedia("(hover: hover) and (pointer: fine)").matches), []);
+  const [touchHint, setTouchHint] = useState(false);
+  useEffect(() => {
+    if (!revealed || mouse) return;
+    setTouchHint(true);
+    const t = setTimeout(() => setTouchHint(false), 3500);
+    return () => clearTimeout(t);
+  }, [revealed, mouse]);
+  const stop = () => {
+    setUsed(true);
+    setPlaying(false);
+  };
 
   return (
-    <div>
+    <div
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Packaging we have made"
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") go(index + 1, true);
+        else if (e.key === "ArrowLeft") go(index - 1, true);
+      }}
+    >
       <div
         ref={stageRef}
+        role="img"
+        aria-label={box.alt}
         onPointerEnter={() => setHover(true)}
         onPointerLeave={() => setHover(false)}
-        className="relative mx-auto aspect-square w-full max-w-[420px] select-none lg:max-w-[620px]"
+        // vertical swipes still scroll the page on touch; sideways drags turn the box
+        className="relative mx-auto aspect-square w-full max-w-[420px] touch-pan-y select-none lg:max-w-[620px]"
       >
-        <div className="hero-fade absolute inset-0" style={{ animationDelay: "0.25s" }}>
-        <motion.img
-          src="/hero/aethara.webp"
-          srcSet="/hero/aethara-sm.webp 640w, /hero/aethara.webp 1500w"
-          sizes="(min-width: 1024px) 34vw, 80vw"
-          alt="Aethara navy rigid box with an art-nouveau gold foil illustration"
-          width={1500}
-          height={1518}
-          fetchPriority="high"
-          initial={false}
-          animate={{ opacity: revealed ? 0 : 1 }}
-          transition={{ duration: 0.4, ease: EASE }}
-          style={live ? { WebkitMaskImage: photoMask, maskImage: photoMask } : undefined}
-          draggable={false}
-          className="pointer-events-none absolute left-[13%] top-[13%] h-[74%] w-[74%] select-none object-contain"
-        />
-        </div>
-        {live && (
-          <>
-            <motion.div
-              style={{ WebkitMaskImage: sceneMask, maskImage: sceneMask, left: `-${BLEED_L * 100}%`, right: `-${BLEED_R * 100}%` }}
-              className="pointer-events-none absolute inset-y-0"
+        <motion.div
+          style={{ WebkitMaskImage: sceneMask, maskImage: sceneMask, left: `-${BLEED_L * 100}%`, right: `-${BLEED_R * 100}%` }}
+          className="pointer-events-none absolute inset-y-0"
+        >
+          <BoxScene
+            boxes={heroBoxes.map((h) => h.slug)}
+            current={index}
+            prev={prev}
+            preload={revealed}
+            onModelReady={(i) => {
+              setLoaded((l) => (l[i] ? l : l.map((v, j) => v || j === i)));
+              if (i === 0) setReady(true);
+            }}
+            sweep={sweep}
+            swap={swap}
+            seam={seam}
+            eventSource={stageRef}
+            onInteract={stop}
+            still={reduce}
+          />
+        </motion.div>
+        <AnimatePresence>
+          {revealed && (mouse ? hover : touchHint) && !used && prev === null && (
+            <motion.p
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="pointer-events-none absolute bottom-[13%] left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-ink px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-white"
             >
-              <BoxScene onReady={() => setReady(true)} sweep={sweep} eventSource={stageRef} onInteract={() => setUsed(true)} />
-            </motion.div>
-            {/* the light: a soft warm band riding the seam */}
-            <motion.div
-              aria-hidden="true"
-              style={{ left: bandLeft, opacity: bandOpacity }}
-              className="pointer-events-none absolute inset-y-[4%] w-[26%] -translate-x-1/2 bg-[linear-gradient(90deg,rgba(255,247,230,0)_0%,rgba(255,247,230,0.75)_50%,rgba(255,247,230,0)_100%)] mix-blend-soft-light"
-            />
-            <AnimatePresence>
-              {revealed && hover && !used && (
-                <motion.p
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 4 }}
-                  transition={{ duration: 0.3, ease: EASE }}
-                  className="pointer-events-none absolute bottom-[13%] left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-ink px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-white"
-                >
-                  <HandGrabbing aria-hidden="true" weight="bold" className="h-4 w-4" /> Drag to turn, click to open
-                </motion.p>
-              )}
-            </AnimatePresence>
-            <motion.div
-              aria-hidden="true"
-              style={{ left: bandLeft, opacity: bandOpacity }}
-              className="pointer-events-none absolute inset-y-[8%] w-[3px] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,250,240,0)_0%,rgba(255,250,240,0.9)_50%,rgba(255,250,240,0)_100%)] blur-[1px]"
-            />
-          </>
-        )}
+              <HandGrabbing aria-hidden="true" weight="bold" className="h-4 w-4" /> Drag to turn, {mouse ? "click" : "tap"} to open
+            </motion.p>
+          )}
+        </AnimatePresence>
+        {/* where the light crosses the box: a bright hairline, over the box, hiding the edge between the two */}
+        <motion.div
+          aria-hidden="true"
+          style={{ left: lineLeft, opacity: light.opacity }}
+          className="pointer-events-none absolute inset-y-[8%] w-[3px] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,250,240,0)_0%,rgba(255,250,240,0.9)_50%,rgba(255,250,240,0)_100%)] blur-[1px]"
+        />
       </div>
-      <div className="relative mx-auto -mt-[7%] flex max-w-[420px] items-end justify-between gap-6 border-t border-ink/15 pt-4 lg:max-w-[620px]">
-        <div>
-          <p className="text-[17px] font-semibold text-ink [font-stretch:108%]">Aethara</p>
-          <p className="mt-1 text-[14px] text-muted">Book-style rigid box, hidden magnetic flap, gold foil</p>
+
+      <div className="relative mx-auto -mt-[7%] max-w-[420px] lg:max-w-[620px]">
+        {/* the rule under the box doubles as the picker: one segment per box, the active one fills while playing */}
+        <div className="flex items-center gap-3">
+          <div className="flex flex-1 gap-2">
+            {heroBoxes.map((h, i) => (
+              <button
+                key={h.slug}
+                type="button"
+                onClick={() => go(i, true)}
+                aria-label={`Show ${h.name}`}
+                aria-current={i === index ? "true" : undefined}
+                className="group relative h-6 flex-1 cursor-pointer"
+              >
+                <span className="absolute inset-x-0 top-1/2 h-px bg-ink/20 transition-colors duration-300 group-hover:bg-ink/45" />
+                <motion.span className="absolute inset-x-0 top-1/2 h-px origin-left bg-ink" style={{ scaleX: i === index ? (playing ? tick : 1) : 0 }} />
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setPlaying((p) => !p)}
+            aria-label={playing ? "Pause the boxes" : "Play the boxes"}
+            className="grid h-8 w-8 shrink-0 place-items-center text-ink/70 transition-colors hover:text-ink"
+          >
+            {playing ? <Pause aria-hidden="true" weight="fill" className="h-3.5 w-3.5" /> : <Play aria-hidden="true" weight="fill" className="h-3.5 w-3.5" />}
+          </button>
         </div>
-        <Link href="/work/aethara/" className="label shrink-0 text-ink underline decoration-ink/30 underline-offset-4 hover:text-red">
-          See the project
-        </Link>
+        <div aria-live={playing ? "off" : "polite"} className="pt-2">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={box.slug}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.35, ease: EASE }}
+              className="flex items-end justify-between gap-6"
+            >
+              <div>
+                <p className="text-[17px] font-semibold text-ink [font-stretch:108%]">{box.name}</p>
+                <p className="mt-1 text-[14px] text-ink-2">{box.caption}</p>
+              </div>
+              <Link href={box.href} className="label shrink-0 text-ink underline decoration-ink/30 underline-offset-4 hover:text-red">
+                See the project
+              </Link>
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
