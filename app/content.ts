@@ -59,9 +59,7 @@ export const hero = {
 
 /**
  * The boxes the hero turns through, each a real-time 3D model (see components/home/boxes); `alt`
- * describes it for screen readers. `theme` tints the hero's paper toward the box:
- * three gradient stops, centre to edge. The hero's small type is ink-2 (not muted grey) so the paper can
- * carry real colour: every stop keeps ink-2 above 7:1.
+ * describes it for screen readers.
  */
 export const heroBoxes = [
   {
@@ -70,7 +68,6 @@ export const heroBoxes = [
     caption: "Book-style rigid box, hidden magnetic flap, gold foil",
     href: "/work/aethara/",
     alt: "Aethara navy rigid box with an art-nouveau gold foil illustration",
-    theme: ["#EEF2FA", "#DCE4F3", "#CCD7EC"], // navy, lightened
   },
   {
     slug: "velina",
@@ -78,7 +75,6 @@ export const heroBoxes = [
     caption: "Rigid perfume box, fitted insert, gold foil florals",
     href: "/work/velina/",
     alt: "Velina green rigid perfume box with gold foil florals",
-    theme: ["#EDF4EA", "#D9E7D3", "#C7DBC0"], // green
   },
   {
     slug: "birra",
@@ -86,7 +82,6 @@ export const heroBoxes = [
     caption: "Magnetic rigid boxes in two tones, foil logo, foam insert",
     href: "/work/birra-attar/",
     alt: "Birra peach and lime magnetic rigid boxes with a gold foil logo",
-    theme: ["#FBEFE9", "#F5DCD1", "#EFCDBF"], // peach
   },
 ];
 

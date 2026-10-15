@@ -15,7 +15,7 @@ import { PAPER, TEXTURES } from "./boxes/assets";
  * The headline rises into place, sharp from the first frame. A band of warm light crosses the whole
  * hero, behind the type, and leaves the real-time 3D box behind it, raking the foil as it passes. Then
  * the cover peeks once, and the box is yours to turn and open. Every few seconds the light crosses
- * again: behind it the next box, and the paper in that box's colour. One screen tall, no pinned scroll.
+ * again and leaves the next box behind it. One screen tall, no pinned scroll.
  */
 
 export default function Hero() {
@@ -27,22 +27,8 @@ export default function Hero() {
   // images in CORS mode, so the preload must too or the browser fetches them twice
   for (const href of [...TEXTURES[heroBoxes[0].slug], ...PAPER]) preload(href, { as: "image", crossOrigin: "anonymous", fetchPriority: "low" });
 
-  // the new paper is laid down behind the light: everything left of the seam is the incoming box's colour
-  const wipeA = useTransform(light.x, (x) => x - SOFT * light.geo.current.w);
-  const wipeB = useTransform(light.x, (x) => x + SOFT * light.geo.current.w);
-  const wipe = useMotionTemplate`linear-gradient(90deg, #000 ${wipeA}px, transparent ${wipeB}px)`;
-  const layers = prev === null ? [index] : [prev, index];
-
   return (
-    <section className="relative overflow-hidden bg-[#DCE4F3]" aria-labelledby="hero-title">
-      {layers.map((i) => (
-        <motion.div
-          key={heroBoxes[i].slug}
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{ background: tint(heroBoxes[i].theme), ...(prev !== null && i === index ? { WebkitMaskImage: wipe, maskImage: wipe } : {}) }}
-        />
-      ))}
+    <section className="relative overflow-hidden bg-[radial-gradient(ellipse_at_70%_55%,#FBFAF7_0%,#F4F3F0_50%,#E9E6DF_100%)]" aria-labelledby="hero-title">
       {/* the light: a soft warm band across the full height, behind the type */}
       <motion.div
         aria-hidden="true"
@@ -53,11 +39,6 @@ export default function Hero() {
         aria-hidden="true"
         style={{ left: light.x, opacity: light.opacity }}
         className="pointer-events-none absolute inset-y-0 w-[2px] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,253,248,0)_0%,rgba(255,253,248,0.95)_30%,rgba(255,253,248,0.95)_70%,rgba(255,253,248,0)_100%)]"
-      />
-      {/* the tint gives way to the site's cream paper at the foot, so the hero hands over to the page without a seam */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[20%] min-h-28 bg-[linear-gradient(180deg,rgba(244,243,240,0)_0%,rgba(244,243,240,0.6)_55%,#F4F3F0_100%)]"
       />
       <RegMarks reduce={reduce} />
 
@@ -105,8 +86,6 @@ function FinishWord({ kind, children }: { kind: "offset" | "foil" | "emboss"; ch
 }
 
 /* ------------------------------------------------------------------ the box */
-
-const tint = (t: string[]) => `radial-gradient(ellipse at 70% 55%, ${t[0]} 0%, ${t[1]} 50%, ${t[2]} 100%)`;
 
 // the light, as shares of the hero's width: its band's half-width, and the soft edge of what it reveals
 // (narrower than the band, so the edge is always under the light)
