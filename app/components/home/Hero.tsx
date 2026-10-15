@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { preload } from "react-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useMotionTemplate, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { ArrowRight, HandGrabbing, Pause, Play } from "@phosphor-icons/react/dist/ssr";
 import { hero, heroBoxes, quoteHref } from "../../content";
 import { EASE } from "../ui";
+import { PAPER, TEXTURES } from "./boxes/assets";
 
 /*
  * HERO: "light reveals the object".
@@ -21,6 +23,9 @@ export default function Hero() {
   const [index, setIndex] = useState(0);
   const [prev, setPrev] = useState<number | null>(null); // the box leaving, while the light crosses
   const light = useHeroLight();
+  // fetch the first box's textures alongside the page, not after the 3D code arrives; three.js loads
+  // images in CORS mode, so the preload must too or the browser fetches them twice
+  for (const href of [...TEXTURES[heroBoxes[0].slug], ...PAPER]) preload(href, { as: "image", crossOrigin: "anonymous", fetchPriority: "low" });
 
   // the new paper is laid down behind the light: everything left of the seam is the incoming box's colour
   const wipeA = useTransform(light.x, (x) => x - SOFT * light.geo.current.w);

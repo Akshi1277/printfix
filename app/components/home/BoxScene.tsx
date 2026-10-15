@@ -59,6 +59,8 @@ export default function BoxScene({
   const wrap = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   const [mounted, setMounted] = useState<Set<number>>(() => new Set([current]));
+  // the light that warms a box's lining as it opens: one for all boxes, driven by the box on show
+  const inside = useRef<THREE.PointLight>(null);
 
   // stop rendering while the hero is off screen
   useEffect(() => {
@@ -100,7 +102,7 @@ export default function BoxScene({
           gl.localClippingEnabled = true;
         }}
       >
-        <Stage sweep={sweep} swap={swap} />
+        <Stage sweep={sweep} swap={swap} inside={inside} />
         {boxes.map((slug, i) =>
           mounted.has(i) ? (
             <Suspense key={slug} fallback={null}>
@@ -112,6 +114,7 @@ export default function BoxScene({
                 onReady={() => onModelReady?.(i)}
                 onInteract={onInteract}
                 still={still}
+                inside={inside}
               />
             </Suspense>
           ) : null,
@@ -122,7 +125,7 @@ export default function BoxScene({
 }
 
 /** Framing, lights and the studio reflections every box shares. */
-function Stage({ sweep, swap }: { sweep?: MotionValue<number>; swap?: MotionValue<number> }) {
+function Stage({ sweep, swap, inside }: { sweep?: MotionValue<number>; swap?: MotionValue<number>; inside: React.RefObject<THREE.PointLight | null> }) {
   const camera = useThree((st) => st.camera);
   const size = useThree((st) => st.size);
   const pointer = useThree((st) => st.pointer);
@@ -162,6 +165,7 @@ function Stage({ sweep, swap }: { sweep?: MotionValue<number>; swap?: MotionValu
       <ambientLight intensity={0.28} />
       <directionalLight position={[-2.5, 3, 3]} intensity={1.1} />
       <pointLight ref={light} position={[0, 0.4, 2.2]} intensity={7} distance={0} decay={2} color="#fffaf2" />
+      <pointLight ref={inside} position={[0, 0.45, 0.85]} intensity={0} distance={2.4} decay={2} color="#fff3de" />
       <Environment resolution={256} frames={1}>
         <Lightformer form="rect" intensity={2.2} position={[-3, 2, 3]} scale={[4, 3, 1]} target={[0, 0, 0]} />
         <Lightformer form="rect" intensity={1.4} position={[3, 1, 2]} scale={[1.5, 4, 1]} target={[0, 0, 0]} />
@@ -198,6 +202,7 @@ function Turntable({
   onReady,
   onInteract,
   still,
+  inside,
 }: {
   spec: BoxSpec;
   role: Role;
@@ -206,16 +211,16 @@ function Turntable({
   onReady?: () => void;
   onInteract?: () => void;
   still?: boolean;
+  inside: React.RefObject<THREE.PointLight | null>;
 }) {
-  const { camera, size, pointer } = useThree();
+  const { camera, size, pointer, gl, scene } = useThree();
   const stage = useRef<THREE.Group>(null);
   const turn = useRef<THREE.Group>(null);
   const hinge = useRef<THREE.Group>(null);
-  const inside = useRef<THREE.PointLight>(null);
   const plane = useMemo(() => KEEP_ALL.clone(), []);
   const roleRef = useRef(role);
   roleRef.current = role;
-  const s = useRef({ t: 0, frames: 0, clipped: false, liveAt: -1, drag: 0, dragging: false, lastX: 0, open: false, angle: 0 });
+  const s = useRef({ t: 0, frames: 0, clipped: false, compiled: false, liveAt: -1, drag: 0, dragging: false, lastX: 0, open: false, angle: 0 });
 
   // leaving the stage, the box goes back in its box: closed, at rest, ready to peek again next time
   useEffect(() => {
@@ -232,14 +237,21 @@ function Turntable({
     const k = (rate: number) => 1 - Math.exp(-dt * rate);
     const r = roleRef.current;
 
-    // every material of this box clips against its own plane
-    if (!st.clipped && stage.current) {
-      stage.current.traverse((o) => {
+    // every material of this box clips against its own plane; then its shaders are compiled in the
+    // background (KHR_parallel_shader_compile) before it is ever drawn, so the page never freezes for them
+    const g = stage.current;
+    if (!st.clipped && g) {
+      g.traverse((o) => {
         const m = (o as THREE.Mesh).material;
         if (m) for (const mm of Array.isArray(m) ? m : [m]) mm.clippingPlanes = [plane];
       });
       st.clipped = true;
+      g.visible = true; // compile walks visible objects only
+      gl.compileAsync(g, camera, scene).then(() => (st.compiled = true));
+      g.visible = false;
     }
+    if (!st.compiled) return;
+    if (g && !g.visible) g.visible = true;
     if (r === "solo") plane.copy(KEEP_ALL);
     else if (r === "hidden") plane.copy(CLIP_ALL);
     else {
@@ -247,7 +259,7 @@ function Turntable({
       if (r === "out") plane.negate();
     }
 
-    // tell the page once the box has really been drawn (and compiled), so nothing reveals an empty canvas
+    // tell the page once the box has really been drawn, so nothing reveals an empty canvas
     st.frames++;
     if (st.frames === 3) onReady?.();
 
@@ -281,7 +293,7 @@ function Turntable({
       spec.stage(f, stage.current);
     }
     // opening lets light into the box: the lining warms up as it opens
-    if (inside.current) inside.current.intensity = 2.6 * f;
+    if (r === "solo" && inside.current) inside.current.intensity = 2.6 * f;
   });
 
   // ---- drag to turn (tracked on the window, so it keeps turning off the box's edge), click to open
@@ -323,7 +335,7 @@ function Turntable({
   const { Model } = spec;
 
   return (
-    <group ref={stage} position={[0.02, 0.02, 0]}>
+    <group ref={stage} position={[0.02, 0.02, 0]} visible={false}>
       <group
         ref={turn}
         rotation={[0, spec.rest, 0]}
@@ -332,7 +344,7 @@ function Turntable({
         onPointerOver={() => roleRef.current === "solo" && setCursor("grab")}
         onPointerOut={() => roleRef.current === "solo" && !s.current.dragging && setCursor("")}
       >
-        <Model hinge={hinge} inside={inside} />
+        <Model hinge={hinge} />
       </group>
       <SoftShadow {...spec.shadow} />
     </group>

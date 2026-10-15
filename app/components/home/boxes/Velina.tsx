@@ -5,6 +5,7 @@ import { useThree } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { Board, usePaper, type BoxSpec } from "./kit";
+import { TEXTURES } from "./assets";
 
 /*
  * Velina, a green rigid perfume box cut on a slant: the lid takes the top, the upper front and a
@@ -43,15 +44,8 @@ export const velina: BoxSpec = {
 /** Height of the slant on a side wall, `s` along the wall from front (0) to back (D). */
 const cut = (s: number) => CUT_F + ((CUT_B - CUT_F) * s) / D;
 
-function VelinaModel({ hinge, inside }: { hinge: React.RefObject<THREE.Group | null>; inside: React.RefObject<THREE.PointLight | null> }) {
-  const [front, frontOrm, frontN, side, sideOrm, sideN] = useTexture([
-    "/hero/3d/velina-front.webp",
-    "/hero/3d/velina-front-orm.webp",
-    "/hero/3d/velina-front-n.webp",
-    "/hero/3d/velina-side.webp",
-    "/hero/3d/velina-side-orm.webp",
-    "/hero/3d/velina-side-n.webp",
-  ]);
+function VelinaModel({ hinge }: { hinge: React.RefObject<THREE.Group | null> }) {
+  const [front, frontOrm, frontN, side, sideOrm, sideN] = useTexture(TEXTURES.velina);
   const paperish = usePaper();
   const gl = useThree((st) => st.gl);
 
@@ -155,7 +149,6 @@ function VelinaModel({ hinge, inside }: { hinge: React.RefObject<THREE.Group | n
     <group scale={SCALE}>
       <group position={[0, -H / 2, 0]}>
         {base}
-        <pointLight ref={inside} position={[0, 0.75, 0.75]} intensity={0} distance={2.2} decay={2} color="#fff3de" />
         {/* the lid hinges on the top edge of the back wall */}
         <group ref={hinge} position={[0, CUT_B, -D / 2]}>
           <group position={[0, -CUT_B, D / 2]}>{lid}</group>

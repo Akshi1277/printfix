@@ -5,6 +5,7 @@ import { useThree } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { RBox, usePaper, type BoxSpec } from "./kit";
+import { TEXTURES } from "./assets";
 
 /*
  * Aethara, as a real object. The front cover carries Printfix's own artwork (straightened from the
@@ -37,13 +38,8 @@ export const aethara: BoxSpec = {
   shadow: { y: -H / 2 - 0.002, scale: [1.6, 0.95], rgb: "42,33,24" },
 };
 
-function AetharaModel({ hinge, inside }: { hinge: React.RefObject<THREE.Group | null>; inside: React.RefObject<THREE.PointLight | null> }) {
-  const [faceMap, orm, faceN, shade] = useTexture([
-    "/hero/3d/aethara-face.webp",
-    "/hero/3d/aethara-orm.webp",
-    "/hero/3d/aethara-n.webp", // stamped-foil relief
-    "/hero/3d/inner-shade.webp",
-  ]);
+function AetharaModel({ hinge }: { hinge: React.RefObject<THREE.Group | null> }) {
+  const [faceMap, orm, faceN, shade] = useTexture(TEXTURES.aethara);
   const paperish = usePaper();
   const gl = useThree((st) => st.gl);
 
@@ -74,7 +70,6 @@ function AetharaModel({ hinge, inside }: { hinge: React.RefObject<THREE.Group | 
   return (
     <>
       <Tray navy={mat.navy} cream={mat.cream} edge={mat.edge} inner={mat.inner} />
-      <pointLight ref={inside} position={[-0.05, 0.1, 0.55]} intensity={0} distance={2.2} decay={2} color="#fff3de" />
 
       {/* front cover, hinged on the right-hand spine like a book */}
       <group ref={hinge} position={[W / 2, 0, T / 2 - B]}>

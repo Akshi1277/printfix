@@ -5,6 +5,7 @@ import { useThree } from "@react-three/fiber";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { Board, usePaper, type BoxSpec } from "./kit";
+import { TEXTURES } from "./assets";
 
 /*
  * Birra, the two-tone pair: a peach and a lime magnetic-flap rigid box, side by side as they were shot.
@@ -45,15 +46,8 @@ export const birra: BoxSpec = {
   shadow: { y: FLOOR - 0.002, scale: [2.3, 1.5], rgb: "70,40,30" },
 };
 
-function BirraModel({ hinge, inside }: { hinge: React.RefObject<THREE.Group | null>; inside: React.RefObject<THREE.PointLight | null> }) {
-  const tex = useTexture([
-    "/hero/3d/birra-peach.webp",
-    "/hero/3d/birra-peach-orm.webp",
-    "/hero/3d/birra-peach-n.webp",
-    "/hero/3d/birra-lime.webp",
-    "/hero/3d/birra-lime-orm.webp",
-    "/hero/3d/birra-lime-n.webp",
-  ]);
+function BirraModel({ hinge }: { hinge: React.RefObject<THREE.Group | null> }) {
+  const tex = useTexture(TEXTURES.birra);
   const paperish = usePaper();
   const gl = useThree((st) => st.gl);
 
@@ -92,7 +86,6 @@ function BirraModel({ hinge, inside }: { hinge: React.RefObject<THREE.Group | nu
         <FlapBox tone={PEACH} m={mats[0]} part="lid" />
         <FlapBox tone={LIME} m={mats[1]} part="lid" />
       </group>
-      <pointLight ref={inside} position={[0, 0.9, 0.9]} intensity={0} distance={2.6} decay={2} color="#fff3de" />
     </group>
   );
 }

@@ -5,10 +5,11 @@ import type { RefObject } from "react";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { PAPER } from "./assets";
 
 /** What every hero box tells the shared scene: how it rests, opens, turns and sits on the table. */
 export type BoxSpec = {
-  Model: (p: { hinge: RefObject<THREE.Group | null>; inside: RefObject<THREE.PointLight | null> }) => React.JSX.Element;
+  Model: (p: { hinge: RefObject<THREE.Group | null> }) => React.JSX.Element;
   rest: number; // resting turn, matched to the box's photograph
   open: number; // hinge travel when open
   hinge: (g: THREE.Group, a: number) => void; // how the opening part moves for a given travel
@@ -19,7 +20,7 @@ export type BoxSpec = {
 
 /** The paper the boards are wrapped in: a fine grain and its relief, shared by every box. */
 export function usePaper() {
-  const [paper, paperN] = useTexture(["/hero/3d/paper.webp", "/hero/3d/paper-n.webp"]);
+  const [paper, paperN] = useTexture(PAPER);
   useMemo(() => {
     paper.colorSpace = THREE.SRGBColorSpace;
     paperN.colorSpace = THREE.NoColorSpace;
