@@ -313,6 +313,7 @@ function Turntable({
     };
     const up = () => {
       st.dragging = false;
+      onInteract?.(); // the hold counts from letting go
       document.body.style.cursor = "";
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);

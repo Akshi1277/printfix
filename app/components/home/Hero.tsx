@@ -151,13 +151,15 @@ const SWEEP_DURATION = 1.6;
 // it races across the type and slows over the box: the glimmer reaches the box ~0.33s in, then lingers
 const INTRO_EASE = [0.2, 0.7, 0.35, 1] as const;
 const SWAP_DURATION = 1.8;
-const DWELL = 5; // s each box holds the stage while playing
+const DWELL = 4; // s each box holds the stage while playing
+const HOLD = 2; // s the slideshow waits after someone last turned, opened or picked a box
 const SWEEP_EASE = [0.65, 0, 0.35, 1] as const;
 
 /**
  * Real-time 3D on every screen. A light sweep reveals the first box; the same light carries each move
- * to the next. Plays on its own until someone takes over: dragging, opening, picking a box or pausing
- * stops it for good; hovering, or the hero leaving the screen, holds it. For reduced motion nothing moves
+ * to the next. Plays on its own: hovering the box holds it, and so does turning or opening a box, for
+ * a moment after the last touch; then it carries on. Only the pause button stops it for good, and the
+ * hero leaving the screen holds it. For reduced motion nothing moves
  * on its own: no autoplay, no sweep, no idle sway; boxes change in place and turn only when dragged.
  */
 function BoxStage({
@@ -187,6 +189,8 @@ function BoxStage({
   const swapCtl = useRef<ReturnType<typeof animate> | null>(null);
   const [hover, setHover] = useState(false);
   const [used, setUsed] = useState(false);
+  const [held, setHeld] = useState(false); // someone has just been handling a box
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { sweep, swap, geo } = light;
   const tick = useMotionValue(0); // how far through its turn the box on show is, while playing
 
@@ -200,6 +204,7 @@ function BoxStage({
       document.removeEventListener("visibilitychange", vis);
       io.disconnect();
       swapCtl.current?.stop();
+      if (holdTimer.current) clearTimeout(holdTimer.current);
     };
   }, []);
   useEffect(() => {
@@ -240,8 +245,7 @@ function BoxStage({
   }, [ready, reduce, sweep]);
 
   const go = useCallback(
-    (to: number, byUser = false) => {
-      if (byUser) setPlaying(false);
+    (to: number) => {
       to = (to + heroBoxes.length) % heroBoxes.length;
       if (to === index) return setPending(null);
       // asked for mid-move, or before that box is ready: remember it and go as soon as it can
@@ -260,9 +264,9 @@ function BoxStage({
     if (pending !== null && prev === null && revealed && loaded[pending]) go(pending);
   }, [pending, prev, revealed, loaded, go]);
 
-  // autoplay: fill the active segment, then move on; holding keeps the progress where it is
-  const next = (index + 1) % heroBoxes.length;
-  const running = playing && !hover && onScreen && pageVisible && prev === null && heroBoxes.length > 1 && revealed && loaded[next];
+  // autoplay: fill the active segment, then move on; holding keeps the progress where it is. The next box
+  // finishes loading while this one is on show; if it isn't ready when the time is up, it follows as soon as it is
+  const running = playing && !hover && !held && onScreen && pageVisible && prev === null && heroBoxes.length > 1 && revealed;
   useEffect(() => {
     if (!running) return;
     const c = animate(tick, 1, { duration: DWELL * (1 - tick.get()), ease: "linear", onComplete: () => go(index + 1) });
@@ -292,9 +296,12 @@ function BoxStage({
     const t = setTimeout(() => setTouchHint(false), 3500);
     return () => clearTimeout(t);
   }, [revealed, mouse]);
-  const stop = () => {
+  // handling a box holds the slideshow; it carries on a moment after the last touch
+  const touched = () => {
     setUsed(true);
-    setPlaying(false);
+    setHeld(true);
+    if (holdTimer.current) clearTimeout(holdTimer.current);
+    holdTimer.current = setTimeout(() => setHeld(false), HOLD * 1000);
   };
 
   return (
@@ -303,8 +310,8 @@ function BoxStage({
       aria-roledescription="carousel"
       aria-label="Packaging we have made"
       onKeyDown={(e) => {
-        if (e.key === "ArrowRight") go(index + 1, true);
-        else if (e.key === "ArrowLeft") go(index - 1, true);
+        if (e.key === "ArrowRight") go(index + 1);
+        else if (e.key === "ArrowLeft") go(index - 1);
       }}
     >
       <div
@@ -333,7 +340,7 @@ function BoxStage({
             swap={swap}
             seam={seam}
             eventSource={stageRef}
-            onInteract={stop}
+            onInteract={touched}
             still={reduce}
           />
         </motion.div>
@@ -366,7 +373,7 @@ function BoxStage({
               <button
                 key={h.slug}
                 type="button"
-                onClick={() => go(i, true)}
+                onClick={() => go(i)}
                 aria-label={`Show ${h.name}`}
                 aria-current={i === index ? "true" : undefined}
                 className="group relative h-6 flex-1 cursor-pointer"
