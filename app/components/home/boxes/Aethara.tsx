@@ -36,6 +36,7 @@ export const aethara: BoxSpec = {
     g.scale.setScalar(1 - 0.3 * f);
   },
   shadow: { y: -H / 2 - 0.002, scale: [1.6, 0.95], rgb: "42,33,24" },
+  cover: { w: W, h: H, z: T / 2 },
 };
 
 function AetharaModel({ hinge }: { hinge: React.RefObject<THREE.Group | null> }) {
@@ -53,12 +54,13 @@ function AetharaModel({ hinge }: { hinge: React.RefObject<THREE.Group | null> })
     const cream = new THREE.MeshStandardMaterial({ color: CREAM, roughness: 0.92, metalness: 0, ...paperish });
     const face = new THREE.MeshStandardMaterial({
       map: faceMap,
+      aoMap: orm, // red channel: the crease where the foil is pressed in
       roughnessMap: orm, // green channel
       metalnessMap: orm, // blue channel
       roughness: 1.4, // foil ~0.42: satin, like the photographed foil, still catching the light
       metalness: 0.6,
       envMapIntensity: 1.5,
-      normalMap: faceN, // the foil sits a hair into the board, so its edges catch the light
+      normalMap: faceN, // paper tooth, the engraving, and the foil a hair into the board so its edges catch the light
       normalScale: new THREE.Vector2(0.9, 0.9),
     });
     const edge = new THREE.MeshStandardMaterial({ color: GOLD_EDGE, roughness: 0.45, metalness: 0.55, ...paperish });

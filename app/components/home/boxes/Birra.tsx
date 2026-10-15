@@ -44,6 +44,8 @@ export const birra: BoxSpec = {
     g.scale.setScalar(1 - 0.24 * f);
   },
   shadow: { y: FLOOR - 0.002, scale: [2.3, 1.5], rgb: "70,40,30" },
+  // the pair is low and wide: it shows the camera its two lids
+  cover: { w: 1.4 * SCALE, h: 1.0 * SCALE, z: 0, top: true }, // the lids sit about level with its centre
 };
 
 function BirraModel({ hinge }: { hinge: React.RefObject<THREE.Group | null> }) {
@@ -63,12 +65,13 @@ function BirraModel({ hinge }: { hinge: React.RefObject<THREE.Group | null> }) {
       n.colorSpace = THREE.NoColorSpace;
       const top = new THREE.MeshStandardMaterial({
         map,
-        roughnessMap: orm, // green channel: paper ~0.9, foil ~0.31
+        aoMap: orm, // red channel: the crease where the foil is pressed in
+        roughnessMap: orm, // green channel: paper ~1, foil ~0.31
         metalnessMap: orm, // blue channel
         roughness: 1.3,
         metalness: 0.85,
         envMapIntensity: 1.4,
-        normalMap: n, // the logo is pressed a hair into the board
+        normalMap: n, // paper tooth, and the logo pressed a hair into the board
         normalScale: new THREE.Vector2(0.9, 0.9),
       });
       const wrap = new THREE.MeshStandardMaterial({ color: tone.color, roughness: 0.88, ...paperish });

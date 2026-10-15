@@ -2,26 +2,28 @@
 
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { preload } from "react-dom";
+import { createPortal, preload } from "react-dom";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useMotionTemplate, useMotionValue, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
 import { ArrowRight, HandGrabbing, Pause, Play } from "@phosphor-icons/react/dist/ssr";
 import { hero, heroBoxes, quoteHref } from "../../content";
 import { EASE } from "../ui";
 import { PAPER, TEXTURES } from "./boxes/assets";
+import type { Frame } from "./BoxScene";
 
 /*
  * HERO: "light reveals the object".
  * The headline rises into place, sharp from the first frame. A band of warm light crosses the whole
  * hero, behind the type, and leaves the real-time 3D box behind it, raking the foil as it passes. Then
- * the cover peeks once, and the box is yours to turn and open. Every few seconds the light crosses
- * again and leaves the next box behind it. One screen tall, no pinned scroll.
+ * the cover peeks once, and the box is yours to turn and open. Every few seconds the box flies at you,
+ * crosses the whole hero up close, and as it leaves the next box is on the table. One screen tall, no
+ * pinned scroll.
  */
 
 export default function Hero() {
   const reduce = useReducedMotion() ?? false;
   const [index, setIndex] = useState(0);
-  const [prev, setPrev] = useState<number | null>(null); // the box leaving, while the light crosses
+  const [prev, setPrev] = useState<number | null>(null); // the box flying out, during a move
   const light = useHeroLight();
   // fetch the first box's textures alongside the page, not after the 3D code arrives; three.js loads
   // images in CORS mode, so the preload must too or the browser fetches them twice
@@ -92,27 +94,25 @@ function FinishWord({ kind, children }: { kind: "offset" | "foil" | "emboss"; ch
 const BAND = 0.11;
 const SOFT = 0.05;
 
-type Geo = { w: number; sl: number; sw: number }; // hero width; the box stage's left edge and width within it
 type HeroLight = {
   sweep: MotionValue<number>; // the first reveal, 0..1
-  swap: MotionValue<number>; // a move between boxes, 0..1 (1 at rest)
+  swap: MotionValue<number>; // a move between boxes (the fly-past), 0..1 (1 at rest)
   x: MotionValue<number>; // where the light is, px from the hero's left edge
   opacity: MotionValue<number>;
-  geo: React.RefObject<Geo>;
+  geo: React.RefObject<Frame>; // the hero's size, and where the box stage sits in it
 };
 
-/** One light for the whole hero: it rides the first reveal, then each move between boxes. */
+/** The light that rides the first reveal across the whole hero. */
 function useHeroLight(): HeroLight {
   const sweep = useMotionValue(0);
   const swap = useMotionValue(1);
-  const geo = useRef<Geo>({ w: 1, sl: 0, sw: 1 });
-  const p = useTransform([sweep, swap], ([s, w]: number[]) => (s < 1 ? s : w));
+  const geo = useRef<Frame>({ w: 1, h: 1, sl: 0, st: 0, sw: 1 });
   // from fully off the left edge to fully off the right
-  const x = useTransform(p, (v) => {
+  const x = useTransform(sweep, (v) => {
     const { w } = geo.current;
     return v * w * (1 + 2 * BAND) - BAND * w;
   });
-  const opacity = useTransform(p, [0, 0.04, 0.96, 1], [0, 1, 1, 0]);
+  const opacity = useTransform(sweep, [0, 0.04, 0.96, 1], [0, 1, 1, 0]);
   return { sweep, swap, x, opacity, geo };
 }
 
@@ -120,23 +120,19 @@ function useHeroLight(): HeroLight {
 const loadBoxScene = () => import("./BoxScene");
 if (typeof window !== "undefined") void loadBoxScene();
 const BoxScene = dynamic(loadBoxScene, { ssr: false });
-// must match BLEED in BoxScene: how far the canvas extends beyond the stage square
-const BLEED_L = 0.6;
-const BLEED_R = 0.08;
 
 // the first light goes as soon as the box is ready (just not before the headline has begun to rise)
 const SWEEP_EARLIEST = 0.5; // s after mount
 const SWEEP_DURATION = 1.6;
 // it races across the type and slows over the box: the glimmer reaches the box ~0.33s in, then lingers
 const INTRO_EASE = [0.2, 0.7, 0.35, 1] as const;
-const SWAP_DURATION = 1.8;
+const FLY_DURATION = 1.8; // the fly-past, from lifting off the table to gone past the left edge
 const DWELL = 4; // s each box holds the stage while playing
 const HOLD = 2; // s the slideshow waits after someone last turned, opened or picked a box
-const SWEEP_EASE = [0.65, 0, 0.35, 1] as const;
 
 /**
- * Real-time 3D on every screen. A light sweep reveals the first box; the same light carries each move
- * to the next. Plays on its own: hovering the box holds it, and so does turning or opening a box, for
+ * Real-time 3D on every screen. A light sweep reveals the first box; each move to the next is the box on
+ * show flying past the viewer. Plays on its own: hovering the box holds it, and so does turning or opening a box, for
  * a moment after the last touch; then it carries on. Only the pause button stops it for good, and the
  * hero leaving the screen holds it. For reduced motion nothing moves
  * on its own: no autoplay, no sweep, no idle sway; boxes change in place and turn only when dragged.
@@ -170,6 +166,7 @@ function BoxStage({
   const [used, setUsed] = useState(false);
   const [held, setHeld] = useState(false); // someone has just been handling a box
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [host, setHost] = useState<HTMLElement | null>(null); // the hero, which the 3D canvas covers
   const { sweep, swap, geo } = light;
   const tick = useMotionValue(0); // how far through its turn the box on show is, while playing
 
@@ -190,10 +187,11 @@ function BoxStage({
     const st = stageRef.current;
     const sec = st?.closest("section");
     if (!st || !sec) return;
+    setHost(sec);
     const measure = () => {
       const s = sec.getBoundingClientRect();
       const r = st.getBoundingClientRect();
-      geo.current = { w: s.width, sl: r.left - s.left, sw: r.width };
+      geo.current = { w: s.width, h: s.height, sl: r.left - s.left, st: r.top - s.top, sw: r.width };
     };
     measure();
     const ro = new ResizeObserver(measure);
@@ -235,7 +233,8 @@ function BoxStage({
       if (reduce) return; // change in place
       setPrev(index);
       swap.set(0);
-      swapCtl.current = animate(swap, 1, { duration: SWAP_DURATION, ease: SWEEP_EASE, onComplete: () => setPrev(null) });
+      // linear here: the fly-past shapes its own pace
+      swapCtl.current = animate(swap, 1, { duration: FLY_DURATION, ease: "linear", onComplete: () => setPrev(null) });
     },
     [index, prev, reduce, revealed, loaded, tick, swap, setIndex, setPrev],
   );
@@ -252,17 +251,11 @@ function BoxStage({
     return () => c.stop();
   }, [running, index, tick, go]);
 
-  // the hero's light in the stage's own percentages, and in the (wider) canvas's
-  const toStage = (x: number) => ((x - geo.current.sl) / geo.current.sw) * 100;
-  const toCanvas = (e: number) => ((BLEED_L + e / 100) / (1 + BLEED_L + BLEED_R)) * 100;
-  // the first reveal: the 3D appears behind the light, with the same soft edge as the paper
-  const soft = () => SOFT * geo.current.w;
-  const ca = useTransform(sweep, (v) => toCanvas(toStage(v * geo.current.w * (1 + 2 * BAND) - BAND * geo.current.w - soft())));
-  const cb = useTransform(sweep, (v) => toCanvas(toStage(v * geo.current.w * (1 + 2 * BAND) - BAND * geo.current.w + soft())));
+  // the first reveal: the 3D (whose canvas covers the hero) appears behind the light, with a soft edge
+  const ca = useTransform(light.x, (x) => ((x - SOFT * geo.current.w) / geo.current.w) * 100);
+  const cb = useTransform(light.x, (x) => ((x + SOFT * geo.current.w) / geo.current.w) * 100);
   const sceneMask = useMotionTemplate`linear-gradient(90deg, #000 ${ca}%, transparent ${cb}%)`;
-  // a move between boxes: each box is clipped at the light, in canvas terms
-  const seam = useTransform(light.x, (x) => toCanvas(toStage(x)) / 100);
-  const lineLeft = useTransform(light.x, (x) => `${toStage(x)}%`);
+  const lineLeft = useTransform(light.x, (x) => `${((x - geo.current.sl) / geo.current.sw) * 100}%`);
 
   const box = heroBoxes[index];
   // no hover on touch screens: show the hint for a few seconds once the box is revealed
@@ -302,27 +295,29 @@ function BoxStage({
         // vertical swipes still scroll the page on touch; sideways drags turn the box
         className="relative mx-auto aspect-square w-full max-w-[420px] touch-pan-y select-none lg:max-w-[620px]"
       >
-        <motion.div
-          style={{ WebkitMaskImage: sceneMask, maskImage: sceneMask, left: `-${BLEED_L * 100}%`, right: `-${BLEED_R * 100}%` }}
-          className="pointer-events-none absolute inset-y-0"
-        >
-          <BoxScene
-            boxes={heroBoxes.map((h) => h.slug)}
-            current={index}
-            prev={prev}
-            preload={revealed}
-            onModelReady={(i) => {
-              setLoaded((l) => (l[i] ? l : l.map((v, j) => v || j === i)));
-              if (i === 0) setReady(true);
-            }}
-            sweep={sweep}
-            swap={swap}
-            seam={seam}
-            eventSource={stageRef}
-            onInteract={touched}
-            still={reduce}
-          />
-        </motion.div>
+        {/* the 3D canvas covers the whole hero, above the type (a box flies over everything), never taking clicks */}
+        {host &&
+          createPortal(
+            <motion.div style={{ WebkitMaskImage: sceneMask, maskImage: sceneMask }} className="pointer-events-none absolute inset-0 z-20">
+              <BoxScene
+                boxes={heroBoxes.map((h) => h.slug)}
+                current={index}
+                prev={prev}
+                preload={revealed}
+                onModelReady={(i) => {
+                  setLoaded((l) => (l[i] ? l : l.map((v, j) => v || j === i)));
+                  if (i === 0) setReady(true);
+                }}
+                sweep={sweep}
+                swap={swap}
+                frame={geo}
+                eventSource={stageRef}
+                onInteract={touched}
+                still={reduce}
+              />
+            </motion.div>,
+            host,
+          )}
         <AnimatePresence>
           {revealed && (mouse ? hover : touchHint) && !used && prev === null && (
             <motion.p
@@ -330,7 +325,7 @@ function BoxStage({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 4 }}
               transition={{ duration: 0.3, ease: EASE }}
-              className="pointer-events-none absolute bottom-[13%] left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-ink px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-white"
+              className="pointer-events-none absolute bottom-[13%] left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap bg-ink px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.12em] text-white"
             >
               <HandGrabbing aria-hidden="true" weight="bold" className="h-4 w-4" /> Drag to turn, {mouse ? "click" : "tap"} to open
             </motion.p>
@@ -340,7 +335,7 @@ function BoxStage({
         <motion.div
           aria-hidden="true"
           style={{ left: lineLeft, opacity: light.opacity }}
-          className="pointer-events-none absolute inset-y-[8%] w-[3px] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,250,240,0)_0%,rgba(255,250,240,0.9)_50%,rgba(255,250,240,0)_100%)] blur-[1px]"
+          className="pointer-events-none absolute inset-y-[8%] z-30 w-[3px] -translate-x-1/2 bg-[linear-gradient(180deg,rgba(255,250,240,0)_0%,rgba(255,250,240,0.9)_50%,rgba(255,250,240,0)_100%)] blur-[1px]"
         />
       </div>
 

@@ -16,6 +16,9 @@ export type BoxSpec = {
   turn: { closed: [number, number]; open: [number, number] }; // drag limits
   stage: (f: number, g: THREE.Group) => void; // pose the whole box as it opens, 0 closed .. 1 open
   shadow: { y: number; scale: [number, number]; rgb: string };
+  // the face that turns to the camera as the box flies past, in world units: its size, how far it sits in
+  // front of the box's centre, and `top` to turn the lid to the camera instead of the front
+  cover: { w: number; h: number; z: number; top?: boolean };
 };
 
 /** The paper the boards are wrapped in: a fine grain and its relief, shared by every box. */

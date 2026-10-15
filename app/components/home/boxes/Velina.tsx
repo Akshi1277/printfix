@@ -39,6 +39,7 @@ export const velina: BoxSpec = {
     g.scale.setScalar(1 - 0.26 * f);
   },
   shadow: { y: (-H / 2) * SCALE - 0.002, scale: [1.5, 1.25], rgb: "24,36,30" },
+  cover: { w: W * SCALE, h: H * SCALE, z: (D / 2) * SCALE },
 };
 
 /** Height of the slant on a side wall, `s` along the wall from front (0) to back (D). */
@@ -57,12 +58,13 @@ function VelinaModel({ hinge }: { hinge: React.RefObject<THREE.Group | null> }) 
       n.colorSpace = THREE.NoColorSpace;
       return new THREE.MeshStandardMaterial({
         map,
-        roughnessMap: orm, // green channel: paper ~0.84, foil ~0.32
+        aoMap: orm, // red channel: the crease where the foil is pressed in
+        roughnessMap: orm, // green channel: paper ~0.84, foil ~0.39
         metalnessMap: orm, // blue channel
         roughness: 1.35,
         metalness: 0.8,
         envMapIntensity: 1.5,
-        normalMap: n, // the foil is pressed a hair into the board
+        normalMap: n, // paper tooth, and the foil pressed a hair into the board
         normalScale: new THREE.Vector2(0.8, 0.8),
       });
     };
