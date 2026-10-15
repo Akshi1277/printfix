@@ -137,14 +137,19 @@ function useHeroLight(): HeroLight {
   return { sweep, swap, x, opacity, geo };
 }
 
-const BoxScene = dynamic(() => import("./BoxScene"), { ssr: false });
+// start fetching the 3D code as soon as this module runs, not when the hero first renders after hydration
+const loadBoxScene = () => import("./BoxScene");
+if (typeof window !== "undefined") void loadBoxScene();
+const BoxScene = dynamic(loadBoxScene, { ssr: false });
 // must match BLEED in BoxScene: how far the canvas extends beyond the stage square
 const BLEED_L = 0.6;
 const BLEED_R = 0.08;
 
-// the sweep never starts before the headline has landed, however fast the 3D loads
-const SWEEP_EARLIEST = 1.1; // s after mount
-const SWEEP_DURATION = 1.9; // the light crossing the whole hero
+// the first light goes as soon as the box is ready (just not before the headline has begun to rise)
+const SWEEP_EARLIEST = 0.5; // s after mount
+const SWEEP_DURATION = 1.6;
+// it races across the type and slows over the box: the glimmer reaches the box ~0.33s in, then lingers
+const INTRO_EASE = [0.2, 0.7, 0.35, 1] as const;
 const SWAP_DURATION = 1.8;
 const DWELL = 5; // s each box holds the stage while playing
 const SWEEP_EASE = [0.65, 0, 0.35, 1] as const;
@@ -227,8 +232,8 @@ function BoxStage({
     const since = (performance.now() - mountedAt.current) / 1000;
     const c = animate(sweep, 1, {
       duration: SWEEP_DURATION,
-      ease: SWEEP_EASE,
-      delay: Math.max(0.15, SWEEP_EARLIEST - since),
+      ease: INTRO_EASE,
+      delay: Math.max(0.05, SWEEP_EARLIEST - since),
       onComplete: () => setRevealed(true),
     });
     return () => c.stop();
